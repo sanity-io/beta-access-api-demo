@@ -7,7 +7,7 @@ info:
     <h3>Overview:</h3>
     <p>Throughout this document the terms <code>{resourceType}</code> and <code>{resourceId}</code> are used to refer to the resource that the API request is being applied to.
     <ul>
-      <li><code>{resourceType}</code> can be an organization, project, or asset-library.</li>
+      <li><code>{resourceType}</code> can be an organization or project.</li>
       <li><code>{resourceId}</code> is the ID of the resource that the API request is being applied to.</li>
     </ul>
 
@@ -15,32 +15,31 @@ info:
     <ul>
       <li>http://api.sanity.io/vX/access/<b>organization/or0Bc1hcJ</b>/roles</li>
       <li>http://api.sanity.io/vX/access/<b>project/c7ja4siy</b>/roles</li>
-      <li>http://api.sanity.io/vX/access/<b>asset-library/sxscds21</b>/roles</li>
     </ul>
 
     <h3>Key Concepts</h3>
     <ul>
     <li>Resource</li>
     <ul>
-    <li>A resource is an entity that can be managed and accessed through the API. Currently, the supported resources are <code>organization</code> and <code>project</code>. In the future, we plan to include <code>asset-library</code> as a resource.</li>
+    <li>A resource is an entity that can be managed and accessed through the API. Currently, the supported resources are <code>organization</code> and <code>project</code>.</li>
     </ul>
     <li>Permission</li>
     <ul>
-    <li>Every resource has a list of permissions. These permissions represents different actions that can be performed on said resource. A user or robot must be granted a permission (through a role) in order to do the action.</li>
-    <li>The permission typically take the form of <code>{company}.{resourceType}.{objectName}.{action}</code> but this is not always the case due to legacy terms.</li>
-    <li>There are both pre-defined and custom permissions. Pre-defined permissions are the ones that come with the product and are not editable</li>
+    <li>Every resource has a list of permissions. These permissions represent different actions that can be performed on said resource. A user or robot must be granted a permission (through a role) in order to do the action.</li>
+    <li>The permission typically takes the form of <code>{company}.{resourceType}.{objectName}.{action}</code> but this is not always the case due to legacy terms.</li>
+    <li>There are both pre-defined and custom permissions. Pre-defined permissions are the ones that come with the product and are not editable.</li>
     </ul>
     <li>Role</li>
     <ul>
-    <li>A role is a named collection of permissions that can be applied to a user or robots. Roles are in the scope of a resource and can only receive permissions that are in the same resource scope. For example, a project role can only include document permissions for that project.</li>
+    <li>A role is a named collection of permissions that can be applied to a user or robot. Roles are in the scope of a resource and can only receive permissions that are in the same resource scope. For example, a project role can only include document permissions for that project.</li>
     <li>A role is specific to a single resource and can only include permissions within that resource's scope. In the future, roles will be able to include permissions for child resources as well. For example, an organization role will be able to include document permissions for specific projects or all projects.</li>
-    <li>A user cannot be part of a resource without a role. Each user in an organizationmust have at least one role assigned to them.</li>
+    <li>A user cannot be part of a resource without a role. Each user in an organization must have at least one role assigned to them.</li>
     <li>There are both pre-defined and custom roles. Pre-defined roles are the ones that come with the product and are not editable but can be removed from a resource if the feature is enabled.</li>
     </ul>
     <li>User</li>
     <ul>
     <li>A user on a resource is a person that has one or more roles assigned to them.</li>
-    <li>A user can be first added to a resource via invitation or access request. A user that already has one role can be assigned roles in another project within the same organization or at the organizaiton level without requiring a separate invite.</li>
+    <li>A user can be first added to a resource via invitation or access request. A user that already has one role can be assigned roles in another project within the same organization or at the organization level without requiring a separate invite.</li>
     <li>As an organization owns multiple resources (e.g. projects), the users with roles on these resources are also returned when reading the users of an organization.</li>
     <li>If a user has roles in multiple projects, they are considered a single user, referenced to by their sanityUserId. For example, inviting user A to project B and project C on the same organization will result in a single user with two memberships.</li>
     </ul>
@@ -64,11 +63,11 @@ info:
     See <a href="https://www.sanity.io/docs/roles-reference">details of existing API for a better understanding of the changes</a>.
     Summary:
     <ul>
-      <li><code>Access</code> is now the root path for managing access based resources. Previously it was organization and project but these are now nested under the access root.</li>
+      <li><code>Access</code> is now the root path for managing access-based resources. Previously it was organization and project but these are now nested under the access root.</li>
       <li>Internal IDs are no longer exposed for permissions or roles. The <code>name</code> property is now used as the unique identifier for permissions and roles.</li>
       <li><code>Permissions</code> now represent <code>grants</code>, <code>resources</code> and <code>permissionResourceSchema</code> which are now legacy terms.</li>
-      <li>The API /organization/:organizationId/Users returns users for all resources owned by organization. Previously, a client would have to make a request for each resource (e.g. project) individually.</li>
-      <li><code>users</code> replaces the term <code>ACL</code>. Users are to represent individuals assigned roles within the organization</li>
+      <li>The API /organization/:organizationId/Users returns users for all resources owned by the organization. Previously, a client would have to make a request for each resource (e.g. project) individually.</li>
+      <li><code>users</code> replaces the term <code>ACL</code>. Users are to represent individuals assigned roles within the organization.</li>
       <li>The pre-defined roles can be completely removed from a resource. Previously, default roles could not be removed from a resource. E.g. a project required at least one project administrator, even if there were custom roles that would cover the same use case.</li>
     </ul>
 
@@ -77,10 +76,6 @@ info:
     url: https://sanity.io
   version: vX
 servers:
-  - url: http://localhost:5001
-    description: Local development server or Port Forwarding
-  - url: https://api.sanity.work
-    description: Staging External API
   - url: https://api.sanity.io
     description: Production External API
 tags:
@@ -141,7 +136,7 @@ components:
       description: The name of the permission. This is a unique identifier for the permission.
       example: 'sanity.project.members.read'
     requestIdParam:
-      name: requestID
+      name: requestId
       in: path
       required: true
       schema:
@@ -204,11 +199,11 @@ components:
           example: 'sanity.project.members.read'
         title:
           type: string
-          description: The human readable title of the permission
+          description: The human-readable title of the permission
           example: 'Read Project users'
         description:
           type: string
-          description: The human readable description of the permission
+          description: The human-readable description of the permission
           example: 'Read access to project users'
         resourceType:
           type: string
@@ -316,7 +311,7 @@ components:
           example: 'editor'
     ResourceType:
       type: string
-      enum: [asset-library, organization, project]
+      enum: [organization, project]
       example: project
       description: |
         Resources are entities that can be managed and accessed through the
@@ -489,7 +484,7 @@ components:
                 example: 'Permission for "Legal" Folder'
               config:
                 type: object
-                description: Some permissions allow for additional configuration when used with document permissions.  Accepts a groq filter or a dataset name.
+                description: Some permissions allow for additional configuration when used with document permissions. Accepts a groq filter or a dataset name.
                 example: {'filter': "*[_type == 'legal']"}
 paths:
   /vX/access/{resourceType}/{resourceId}/permissions:
@@ -655,7 +650,7 @@ paths:
       summary: List all users of a resource and their assigned roles.
 
       description: >
-        Retrieve a list of all users of a resource along with their assigned roles. When the resourceType is `organization`, this endpoint will return users of projects or asset libraries owned by the organization.
+        Retrieve a list of all users of a resource along with their assigned roles. When the resourceType is `organization`, this endpoint will return users of projects owned by the organization.
         Requires permission
           - `sanity.{resourceType}.members.read`
       operationId: getUsers
@@ -706,7 +701,7 @@ paths:
     delete:
       summary: Remove a user from a resource.
       description: >
-        This removes all roles. If the resourceType is `organization`, this will also remove the user from all projects and asset libraries owned by the organization.
+        This removes all roles. If the resourceType is `organization`, this will also remove the user from all projects owned by the organization.
         Requires permission
           - `sanity.{resourceType}.members.delete`
       operationId: removeUser
@@ -718,7 +713,7 @@ paths:
         - $ref: '#/components/parameters/sanityUserIdParam'
       responses:
         '200':
-          description: user removed from the resource
+          description: User removed from the resource
         '400':
           description: Invalid input
         '404':
@@ -994,7 +989,7 @@ paths:
           description: Request not found
         '401':
           description: Unauthorized
-  /v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestID}/accept:
+  /v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestId}/accept:
     put:
       summary: Accept request
       description: 'Permissions `sanity.{resourceType}.members.invite`'
@@ -1031,7 +1026,7 @@ paths:
           description: Request not found
         '401':
           description: Unauthorized
-  /v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestID}/decline:
+  /v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestId}/decline:
     put:
       summary: Decline request
       description: 'Permissions `sanity.{resourceType}.members.invite`'
@@ -1101,8 +1096,6 @@ paths:
         This endpoint requires an authenticated user session with the following
         permissions:
         - `sanity.{resourceType}.members.read`
-
-        This endpoint is accessible to internal service sessions.
       parameters:
         - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'
@@ -1150,8 +1143,6 @@ paths:
         - `sanity.{resourceType}.members.invite`
 
         Additionally, only administrators can invite other administrators.
-
-        This endpoint is accessible to internal service sessions.
       parameters:
         - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'
@@ -1189,8 +1180,6 @@ paths:
         This endpoint requires an authenticated user session with the following
         permissions:
         - `sanity.{resourceType}.members.invite`
-
-        This endpoint is accessible to internal service sessions.
       parameters:
         - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'
@@ -1218,8 +1207,6 @@ paths:
         ### Authorization
 
         This endpoint does not require authentication.
-
-        This endpoint is accessible to internal service sessions.
       parameters:
         - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'
@@ -1267,9 +1254,6 @@ paths:
         ### Authorization
 
         This endpoint requires an authenticated user session.
-
-        This endpoint is NOT accessible to internal service sessions. Any
-        attempt will result in a 403 Forbidden error.
       parameters:
         - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'

@@ -10,11 +10,11 @@ export type PermissionSchema = {
      */
     name?: string;
     /**
-     * The human readable title of the permission
+     * The human-readable title of the permission
      */
     title?: string;
     /**
-     * The human readable description of the permission
+     * The human-readable description of the permission
      */
     description?: string;
     /**
@@ -69,7 +69,7 @@ export type RequestSchema = {
  * Access API.
  *
  */
-export type ResourceType = 'asset-library' | 'organization' | 'project';
+export type ResourceType = 'organization' | 'project';
 
 export type Invite = {
     id: string;
@@ -208,7 +208,7 @@ export type CreatePermissionData = {
          */
         description?: string;
         /**
-         * Some permissions allow for additional configuration when used with document permissions.  Accepts a groq filter or a dataset name.
+         * Some permissions allow for additional configuration when used with document permissions. Accepts a groq filter or a dataset name.
          */
         config?: {
             [key: string]: unknown;
@@ -270,7 +270,7 @@ export type UpdatePermissionData = {
          */
         description?: string;
         /**
-         * Some permissions allow for additional configuration when used with document permissions.  Accepts a groq filter or a dataset name.
+         * Some permissions allow for additional configuration when used with document permissions. Accepts a groq filter or a dataset name.
          */
         config?: {
             [key: string]: unknown;
@@ -664,7 +664,7 @@ export type AcceptRequestData = {
         /**
          * ID of the request
          */
-        requestID: string;
+        requestId: string;
         /**
          * The resource ID to scope the access request to. Must be a valid ID for the resource type.
          */
@@ -685,7 +685,7 @@ export type DeclineRequestData = {
         /**
          * ID of the request
          */
-        requestID: string;
+        requestId: string;
         /**
          * The resource ID to scope the access request to. Must be a valid ID for the resource type.
          */

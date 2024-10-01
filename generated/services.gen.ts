@@ -90,7 +90,7 @@ export class Permissions {
 export class Users {
     /**
      * List all users of a resource and their assigned roles.
-     * Retrieve a list of all users of a resource along with their assigned roles. When the resourceType is `organization`, this endpoint will return users of projects or asset libraries owned by the organization. Requires permission
+     * Retrieve a list of all users of a resource along with their assigned roles. When the resourceType is `organization`, this endpoint will return users of projects owned by the organization. Requires permission
      * - `sanity.{resourceType}.members.read`
      *
      */
@@ -114,7 +114,7 @@ export class Users {
     
     /**
      * Remove a user from a resource.
-     * This removes all roles. If the resourceType is `organization`, this will also remove the user from all projects and asset libraries owned by the organization. Requires permission
+     * This removes all roles. If the resourceType is `organization`, this will also remove the user from all projects owned by the organization. Requires permission
      * - `sanity.{resourceType}.members.delete`
      *
      */
@@ -276,7 +276,7 @@ export class Requests {
     public static acceptRequest<ThrowOnError extends boolean = false>(options: Options<AcceptRequestData, ThrowOnError>) {
         return (options?.client ?? client).put<AcceptRequestResponse, AcceptRequestError, ThrowOnError>({
             ...options,
-            url: '/v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestID}/accept'
+            url: '/v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestId}/accept'
         });
     }
     
@@ -287,7 +287,7 @@ export class Requests {
     public static declineRequest<ThrowOnError extends boolean = false>(options: Options<DeclineRequestData, ThrowOnError>) {
         return (options?.client ?? client).put<DeclineRequestResponse, DeclineRequestError, ThrowOnError>({
             ...options,
-            url: '/v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestID}/decline'
+            url: '/v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestId}/decline'
         });
     }
     
@@ -325,8 +325,6 @@ export class Invites {
      * permissions:
      * - `sanity.{resourceType}.members.read`
      *
-     * This endpoint is accessible to internal service sessions.
-     *
      */
     public static getInvites<ThrowOnError extends boolean = false>(options: Options<GetInvitesData, ThrowOnError>) {
         return (options?.client ?? client).get<GetInvitesResponse, GetInvitesError, ThrowOnError>({
@@ -359,8 +357,6 @@ export class Invites {
      *
      * Additionally, only administrators can invite other administrators.
      *
-     * This endpoint is accessible to internal service sessions.
-     *
      */
     public static createInvite<ThrowOnError extends boolean = false>(options: Options<CreateInviteData, ThrowOnError>) {
         return (options?.client ?? client).post<CreateInviteResponse, CreateInviteError, ThrowOnError>({
@@ -382,8 +378,6 @@ export class Invites {
      * permissions:
      * - `sanity.{resourceType}.members.invite`
      *
-     * This endpoint is accessible to internal service sessions.
-     *
      */
     public static revokeInvite<ThrowOnError extends boolean = false>(options: Options<RevokeInviteData, ThrowOnError>) {
         return (options?.client ?? client).delete<RevokeInviteResponse, RevokeInviteError, ThrowOnError>({
@@ -399,8 +393,6 @@ export class Invites {
      * ### Authorization
      *
      * This endpoint does not require authentication.
-     *
-     * This endpoint is accessible to internal service sessions.
      *
      */
     public static getInviteByToken<ThrowOnError extends boolean = false>(options: Options<GetInviteByTokenData, ThrowOnError>) {
@@ -439,9 +431,6 @@ export class Invites {
      * ### Authorization
      *
      * This endpoint requires an authenticated user session.
-     *
-     * This endpoint is NOT accessible to internal service sessions. Any
-     * attempt will result in a 403 Forbidden error.
      *
      */
     public static acceptInvite<ThrowOnError extends boolean = false>(options: Options<AcceptInviteData, ThrowOnError>) {

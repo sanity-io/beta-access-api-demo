@@ -47,6 +47,8 @@ The examples use dotenv to load the environment variables, an example .env file 
 
 If you make changes to the OpenAPI Specification, you will need to regenerate the SDK and documentation.
 
+The spec can be found in `./specs/beta-access-api.yaml`.
+
 ```bash
 npm install
 npm run generate:sdk:typescript

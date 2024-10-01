@@ -16,12 +16,12 @@ export const PermissionSchemaSchema = {
         },
         title: {
             type: 'string',
-            description: 'The human readable title of the permission',
+            description: 'The human-readable title of the permission',
             example: 'Read Project users'
         },
         description: {
             type: 'string',
-            description: 'The human readable description of the permission',
+            description: 'The human-readable description of the permission',
             example: 'Read access to project users'
         },
         resourceType: {
@@ -175,7 +175,7 @@ export const RequestSchemaSchema = {
 
 export const ResourceTypeSchema = {
     type: 'string',
-    enum: ['asset-library', 'organization', 'project'],
+    enum: ['organization', 'project'],
     example: 'project',
     description: `Resources are entities that can be managed and accessed through the
 Access API.
