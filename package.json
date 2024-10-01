@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "generate:sdk:typescript": "tsx ./scripts/generateTypescriptLibrary.ts",
-    "generate:docs": "redocly build-docs ./specs/beta-access-api.yaml -o ./docs/beta-access-api.html --title beta-access-api"
+    "generate:docs:html": "redocly build-docs ./specs/beta-access-api.yaml -o ./docs/beta-access-api.html --title beta-access-api"
   },
   "author": "",
   "license": "ISC",
@@ -15,5 +15,8 @@
     "@redocly/cli": "^1.25.4",
     "@types/node": "^22.7.4",
     "tsx": "^4.19.1"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
   }
 }

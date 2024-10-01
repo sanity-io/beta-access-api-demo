@@ -10,12 +10,13 @@ We plan to make the API generally available in the near future. This is your opp
 
 ## API Documentation
 
-The OpenAPI Specification has been included in this package. The specification includes a detailed description of the API and endpoint definitions.  
-You can view a human-readable version of the documentation in `docs/index.html`.
+The OpenAPI Specification has been included in this package. The specification includes a detailed description of the API and endpoint definitions. Feel free to use this spec to generate client libraries in your preferred language.
+
+You can view a human-readable version of the documentation in `docs/beta-access-api.html`.
 
 ## API Usage
 
-You can call the HTTP endpoints directly, or use the SDK.
+You can call the HTTP endpoints directly, or use the SDK. You need to pass a valid bearer token in the header of your request. This can be a project robot token or a user token.
 
 ### HTTP
 
@@ -23,14 +24,35 @@ Example HTTP request to return all users in a project:
 
 ```bash
 curl -X 'GET' \
-  'http://localhost:5001/vX/access/project/<project-id>/users' \
+  'https://api.sanity.io/vX/access/project/<project-id>/users' \
   -H 'accept: application/json' \
-  -H 'Authorization: Bearer <access-token>'
+  -H 'Authorization: Bearer <token>'
 ```
-
-The `access-token` can be a project robot token or a user token.
 
 ### SDK
 
-The SDK is generated from the OpenAPI Specification and includes TypeScript types and client methods. 
+A typescript SDK has generated from the OpenAPI Specification and includes TypeScript types and wrapper methods that call the API. 
 This has been pre-built for you, so you can start using it immediately. Look at the `/examples` folder for examples of how to use the SDK.
+
+Example usage:
+
+```bash
+tsx ./examples/getUsers.ts
+```
+
+Populate the environment variables with your token and project ID, then run the script. 
+The examples use dotenv to load the environment variables, an example .env file is included.
+
+## Regenerating the SDK or Documentation
+
+If you make changes to the OpenAPI Specification, you will need to regenerate the SDK and documentation.
+
+```bash
+npm install
+npm run generate:sdk:typescript
+npm run generate:docs:html
+```
+
+## Feedback
+
+Please provide feedback on the API via Slack in your support channel.
