@@ -12,7 +12,7 @@ We plan to make the API generally available in the near future. This is your opp
 
 The OpenAPI Specification has been included in this package. The specification includes a detailed description of the API and endpoint definitions. Feel free to use this spec to generate client libraries in your preferred language.
 
-You can view a human-readable version of the documentation in `docs/beta-access-api.html`.
+You can view a human-readable version of the documentation in `generated/docs/beta-access-api.html`.
 
 ## API Usage
 
@@ -31,7 +31,7 @@ curl -X 'GET' \
 
 ### SDK
 
-A typescript SDK has generated from the OpenAPI Specification and includes TypeScript types and wrapper methods that call the API. 
+A typescript SDK has generated from the OpenAPI Specification into `generated/typescript` that includes TypeScript types and wrapper methods that call the API.
 This has been pre-built for you, so you can start using it immediately. Look at the `/examples` folder for examples of how to use the SDK.
 
 Example usage:

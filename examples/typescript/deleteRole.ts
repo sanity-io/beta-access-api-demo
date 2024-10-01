@@ -1,5 +1,5 @@
 import { initApi } from './util/initApi';
-import { Roles } from '../../generated';
+import { Roles } from '../../generated/typescript';
 
 initApi();
 

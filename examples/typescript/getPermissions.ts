@@ -1,4 +1,4 @@
-import { Permissions } from '../../generated';
+import { Permissions } from '../../generated/typescript';
 import { initApi } from './util/initApi';
 
 initApi();

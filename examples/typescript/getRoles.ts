@@ -1,4 +1,4 @@
-import { Roles } from '../../generated';
+import { Roles } from '../../generated/typescript';
 import { initApi } from './util/initApi';
 
 initApi();

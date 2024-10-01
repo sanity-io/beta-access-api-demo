@@ -1,4 +1,4 @@
-import { Users } from '../../generated';
+import { Users } from '../../generated/typescript';
 import { initApi } from './util/initApi';
 
 initApi();

@@ -7,7 +7,7 @@ async function generateClient() {
       name: '@hey-api/client-fetch',
     },
     input: './specs/beta-access-api.yaml',
-    output: './generated',
+    output: './generated/typescript',
     services: {
       asClass: true,
       name: '{{name}}'
