@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { client } from '../../../generated';
+import { client } from '../../../generated/typescript';
 
 export function initApi() {
   dotenv.config();

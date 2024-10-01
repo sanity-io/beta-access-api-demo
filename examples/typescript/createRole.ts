@@ -11,6 +11,10 @@ async function createRole(projectId: string, roleName: string) {
       name: roleName,
       title: "Member",
       description: 'Read project members and roles',
+      resourceType: 'project',
+      resourceId: projectId,
+      assignableToUsers: true,
+      assignableToRobots: false,
       permissions: [
         {
           name: 'sanity.projects.members.read',

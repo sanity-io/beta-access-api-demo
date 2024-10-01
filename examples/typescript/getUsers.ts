@@ -25,9 +25,9 @@ async function readUsers(projectId: string) {
 
   console.log("Users");
   for (const user of users) {
-    console.log(`- ${user.profile?.displayName} (${user.profile?.email}) has roles:`);
-    for (const membership of user.memberships || []) {
-      for (const role of membership.roleNames || []) {
+    console.log(`- ${user.profile.displayName} (${user.profile.email} provided by ${user.profile.provider}) has roles:`);
+    for (const membership of user.memberships) {
+      for (const role of membership.roleNames) {
         console.log(`  - ${role}`);
       }
     }

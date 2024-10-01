@@ -25,7 +25,7 @@ async function assignRole(projectId: string, email: string, roleName: string) {
     return;
   }
 
-  const user = users.find((user) => user.profile?.email === email);
+  const user = users.find((user) => user.profile.email === email);
 
   if (!user || !user.sanityUserId) {
     console.error("User not found");

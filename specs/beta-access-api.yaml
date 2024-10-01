@@ -91,7 +91,7 @@ tags:
     description: Manage and accept invites.
 components:
   securitySchemes:
-    token:
+    bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
@@ -185,7 +185,7 @@ components:
     unauthorized:
       description: Session is not authenticated.
   schemas:
-    PermissionSchema:
+    Permission:
       title: Permission
       type: object
       properties:
@@ -213,7 +213,13 @@ components:
           type: string
           description: The resource ID that the permission applies to.
           example: 'c7ja4siy'
-    RoleSchema:
+      required:
+        - type
+        - name
+        - title
+        - resourceType
+        - resourceId
+    Role:
       title: Role
       type: object
       properties:
@@ -244,9 +250,18 @@ components:
         permissions:
           type: array
           items:
-            $ref: '#/components/schemas/PermissionSchema'
-    user:
-      title: user object
+            $ref: '#/components/schemas/Permission'
+      required:
+        - name
+        - title
+        - description
+        - resourceType
+        - resourceId
+        - appliesToUsers
+        - appliesToRobots
+        - permissions
+    User:
+      title: User
       type: object
       properties:
         sanityUserId:
@@ -270,7 +285,15 @@ components:
                 items:
                   type: string
                 example: ['administrator', 'editor']
-    RequestSchema:
+            required:
+              - resourceType
+              - resourceId
+              - roleNames
+      required:
+        - sanityUserId
+        - profile
+        - memberships
+    Request:
       type: object
       properties:
         id:
@@ -309,6 +332,13 @@ components:
         requestedRole:
           type: string
           example: 'editor'
+      required:
+        - id
+        - status
+        - resourceId
+        - resourceType
+        - createdAt
+        - requestedByUserId
     ResourceType:
       type: string
       enum: [organization, project]
@@ -398,6 +428,12 @@ components:
           type: boolean
         providerId:
           type: string
+      required:
+        - id
+        - displayName
+        - email
+        - provider
+        - createdAt
     RequestType:
       type: string
       enum: [access, role]
@@ -460,6 +496,16 @@ components:
                       type: object
                       description: The parameters for the permission. This is a key-value map of the permission's configuration.
                       example: {dataset: 'development'}
+                  required:
+                    - name
+            required:
+              - title
+              - name
+              - resourceType
+              - resourceId
+              - assignableToUsers
+              - assignableToRobots
+              - permissions
     PermissionRequestBody:
       content:
         application/json:
@@ -486,6 +532,13 @@ components:
                 type: object
                 description: Some permissions allow for additional configuration when used with document permissions. Accepts a groq filter or a dataset name.
                 example: {'filter': "*[_type == 'legal']"}
+            required:
+              - type
+              - name
+              - title
+              - description
+security:
+  - bearerAuth: []
 paths:
   /vX/access/{resourceType}/{resourceId}/permissions:
     get:
@@ -509,7 +562,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PermissionSchema'
+                  $ref: '#/components/schemas/Permission'
         '404':
           description: Resource not found
         '401':
@@ -542,7 +595,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PermissionSchema'
+                $ref: '#/components/schemas/Permission'
         '400':
           description: Bad request
         '401':
@@ -567,7 +620,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PermissionSchema'
+                $ref: '#/components/schemas/Permission'
         '404':
           description: Resource not found
         '401':
@@ -597,7 +650,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PermissionSchema'
+                $ref: '#/components/schemas/Permission'
         '404':
           description: Resource not found
         '401':
@@ -644,7 +697,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PermissionSchema'
+                  $ref: '#/components/schemas/Permission'
   /vX/access/{resourceType}/{resourceId}/users:
     get:
       summary: List all users of a resource and their assigned roles.
@@ -667,7 +720,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/user'
+                  $ref: '#/components/schemas/User'
         '404':
           description: Resource not found
         '401':
@@ -693,7 +746,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user'
+                $ref: '#/components/schemas/User'
         '404':
           description: Resource not found
         '400':
@@ -783,7 +836,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PermissionSchema'
+                  $ref: '#/components/schemas/Permission'
   /vX/access/{resourceType}/{resourceId}/roles:
     get:
       summary: List roles assignable to a user on this resource.
@@ -805,7 +858,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RoleSchema'
+                  $ref: '#/components/schemas/Role'
     post:
       summary: Create a role
       description: >
@@ -827,7 +880,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoleSchema'
+                $ref: '#/components/schemas/Role'
         '400':
           description: Invalid input
         '401':
@@ -854,7 +907,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoleSchema'
+                $ref: '#/components/schemas/Role'
         '404':
           description: Role not found
         '401':
@@ -884,7 +937,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoleSchema'
+                $ref: '#/components/schemas/Role'
         '400':
           description: Invalid input
         '401':
@@ -936,7 +989,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RequestSchema'
+                  $ref: '#/components/schemas/Request'
         '400':
           description: Bad request
         '404':
@@ -982,7 +1035,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestSchema'
+                $ref: '#/components/schemas/Request'
         '400':
           description: Bad request
         '404':
@@ -1019,7 +1072,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestSchema'
+                $ref: '#/components/schemas/Request'
         '400':
           description: Bad request
         '404':
@@ -1043,7 +1096,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestSchema'
+                $ref: '#/components/schemas/Request'
         '400':
           description: Bad request
         '404':
@@ -1065,7 +1118,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RequestSchema'
+                  $ref: '#/components/schemas/Request'
         '400':
           description: Bad request
         '404':

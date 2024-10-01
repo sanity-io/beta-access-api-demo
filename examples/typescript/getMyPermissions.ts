@@ -18,7 +18,6 @@ async function readMyPermissions(projectId: string) {
     return;
   }
 
-  console.log(`Permissions ${JSON.stringify(permissions, null, 2)}`);
   for (const permission of permissions || []) {
     console.log(`- ${permission.title}`);
     console.log(`  Identifier: ${permission.name}`);

@@ -26,7 +26,7 @@ async function readRoles(projectId: string) {
   console.log("Roles");
   for (const role of roles) {
     console.log(`- ${role.title} (identifier: ${role.name}) has permissions:`);
-    for (const permission of role.permissions || []) {
+    for (const permission of role.permissions) {
       console.log(`  - ${permission.title} (identifier: ${permission.name})`);
     }
   }
