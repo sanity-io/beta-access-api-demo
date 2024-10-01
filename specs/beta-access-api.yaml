@@ -1,0 +1,1289 @@
+openapi: 3.0.0
+info:
+  title: Sanity Access API
+  description: >
+    <p>A centralized API to manage resource access control through roles and permissions.</p>
+
+    <h3>Overview:</h3>
+    <p>Throughout this document the terms <code>{resourceType}</code> and <code>{resourceId}</code> are used to refer to the resource that the API request is being applied to.
+    <ul>
+      <li><code>{resourceType}</code> can be an organization, project, or asset-library.</li>
+      <li><code>{resourceId}</code> is the ID of the resource that the API request is being applied to.</li>
+    </ul>
+
+    When a client uses this API they will always be acting in the context of a specific resource. E.g.:
+    <ul>
+      <li>http://api.sanity.io/vX/access/<b>organization/or0Bc1hcJ</b>/roles</li>
+      <li>http://api.sanity.io/vX/access/<b>project/c7ja4siy</b>/roles</li>
+      <li>http://api.sanity.io/vX/access/<b>asset-library/sxscds21</b>/roles</li>
+    </ul>
+
+    <h3>Key Concepts</h3>
+    <ul>
+    <li>Resource</li>
+    <ul>
+    <li>A resource is an entity that can be managed and accessed through the API. Currently, the supported resources are <code>organization</code> and <code>project</code>. In the future, we plan to include <code>asset-library</code> as a resource.</li>
+    </ul>
+    <li>Permission</li>
+    <ul>
+    <li>Every resource has a list of permissions. These permissions represents different actions that can be performed on said resource. A user or robot must be granted a permission (through a role) in order to do the action.</li>
+    <li>The permission typically take the form of <code>{company}.{resourceType}.{objectName}.{action}</code> but this is not always the case due to legacy terms.</li>
+    <li>There are both pre-defined and custom permissions. Pre-defined permissions are the ones that come with the product and are not editable</li>
+    </ul>
+    <li>Role</li>
+    <ul>
+    <li>A role is a named collection of permissions that can be applied to a user or robots. Roles are in the scope of a resource and can only receive permissions that are in the same resource scope. For example, a project role can only include document permissions for that project.</li>
+    <li>A role is specific to a single resource and can only include permissions within that resource's scope. In the future, roles will be able to include permissions for child resources as well. For example, an organization role will be able to include document permissions for specific projects or all projects.</li>
+    <li>A user cannot be part of a resource without a role. Each user in an organizationmust have at least one role assigned to them.</li>
+    <li>There are both pre-defined and custom roles. Pre-defined roles are the ones that come with the product and are not editable but can be removed from a resource if the feature is enabled.</li>
+    </ul>
+    <li>User</li>
+    <ul>
+    <li>A user on a resource is a person that has one or more roles assigned to them.</li>
+    <li>A user can be first added to a resource via invitation or access request. A user that already has one role can be assigned roles in another project within the same organization or at the organizaiton level without requiring a separate invite.</li>
+    <li>As an organization owns multiple resources (e.g. projects), the users with roles on these resources are also returned when reading the users of an organization.</li>
+    <li>If a user has roles in multiple projects, they are considered a single user, referenced to by their sanityUserId. For example, inviting user A to project B and project C on the same organization will result in a single user with two memberships.</li>
+    </ul>
+    </ul>
+
+    <h3>Administrator Rules</h3>
+    <ul>
+    <li>Changing Administrators</li>
+    <ul>
+    <li>Only administrators can assign or remove roles with admin permissions. This prevents unauthorized permission elevation.</li>
+    <li>This rule applies only to the default roles. Custom roles are fully managed by the organization and can be assigned to users without restriction.</li>
+    </ul>
+    <li>Last Administrator</li>
+    <ul>
+    <li>Each resource must have at least one role assigned to at least one user that can read users, read roles, and assign roles to users. This prevents an organization from losing control over their resources.</li>
+    <li>This is designed as a permission-level check and not a role-level check so that the default roles can be removed from a resource, this will allow customers with advanced roles management enabled to remove the default roles from a resource.</li>
+    </ul>
+    </ul>
+
+    <h3>Breaking Changes from previous versions</h3>
+    See <a href="https://www.sanity.io/docs/roles-reference">details of existing API for a better understanding of the changes</a>.
+    Summary:
+    <ul>
+      <li><code>Access</code> is now the root path for managing access based resources. Previously it was organization and project but these are now nested under the access root.</li>
+      <li>Internal IDs are no longer exposed for permissions or roles. The <code>name</code> property is now used as the unique identifier for permissions and roles.</li>
+      <li><code>Permissions</code> now represent <code>grants</code>, <code>resources</code> and <code>permissionResourceSchema</code> which are now legacy terms.</li>
+      <li>The API /organization/:organizationId/Users returns users for all resources owned by organization. Previously, a client would have to make a request for each resource (e.g. project) individually.</li>
+      <li><code>users</code> replaces the term <code>ACL</code>. Users are to represent individuals assigned roles within the organization</li>
+      <li>The pre-defined roles can be completely removed from a resource. Previously, default roles could not be removed from a resource. E.g. a project required at least one project administrator, even if there were custom roles that would cover the same use case.</li>
+    </ul>
+
+  contact:
+    name: Sanity
+    url: https://sanity.io
+  version: vX
+servers:
+  - url: http://localhost:5001
+    description: Local development server or Port Forwarding
+  - url: https://api.sanity.work
+    description: Staging External API
+  - url: https://api.sanity.io
+    description: Production External API
+tags:
+  - name: Users
+    description: Administrate the users that have organization roles assigned to them.
+  - name: Roles
+    description: Administrate the roles assignable to users of an organization or application.
+  - name: Permissions
+    description: View permissions available to roles within an organization or application.
+  - name: Requests
+    description: Request access to resources. View requests to access resources.
+  - name: Invites
+    description: Manage and accept invites.
+components:
+  securitySchemes:
+    token:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    sanityUserIdParam:
+      in: path
+      name: sanityUserId
+      required: true
+      schema:
+        type: string
+      description: The User ID
+      example: gDdcnv42e
+    resourceTypeParam:
+      name: resourceType
+      description: The resource to scope access requests to.
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ResourceType'
+    resourceIdParam:
+      in: path
+      name: resourceId
+      required: true
+      schema:
+        type: string
+      description: The resource ID to scope the access request to. Must be a valid ID for the resource type.
+      example: 'c7ja4siy'
+    roleNameParam:
+      in: path
+      name: roleName
+      required: true
+      schema:
+        type: string
+      description: The role name
+      example: 'administrator'
+    permissionNameParam:
+      in: path
+      name: permissionName
+      required: true
+      schema:
+        type: string
+      description: The name of the permission. This is a unique identifier for the permission.
+      example: 'sanity.project.members.read'
+    requestIdParam:
+      name: requestID
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID of the request
+    includeChildrenParam:
+      in: query
+      name: includeChildren
+      required: false
+      schema:
+        type: boolean
+      description: Whether to include children resources in the response. Only applies to `organization` resources.
+      example: false
+    inviteId:
+      name: inviteId
+      description: The invite's unique identifier.
+      in: path
+      required: true
+      schema:
+        type: string
+    inviteStatus:
+      name: status
+      description: Filter invites by status.
+      in: query
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/InviteStatus'
+    inviteToken:
+      in: path
+      name: inviteToken
+      required: true
+      schema:
+        type: string
+      description: The public token for the invite. This token is shared with the invitee.
+  responses:
+    badRequest:
+      description: Bad request.
+    forbidden:
+      description: Session is missing required permissions or has the wrong type.
+    resourceNotFound:
+      description: Resource not found.
+    unauthorized:
+      description: Session is not authenticated.
+  schemas:
+    PermissionSchema:
+      title: Permission
+      type: object
+      properties:
+        type:
+          type: string
+          description: The type of permission.
+          example: 'sanity.project.members'
+        name:
+          type: string
+          description: The name of the permission. This is the unique identifier for the resource.
+          example: 'sanity.project.members.read'
+        title:
+          type: string
+          description: The human readable title of the permission
+          example: 'Read Project users'
+        description:
+          type: string
+          description: The human readable description of the permission
+          example: 'Read access to project users'
+        resourceType:
+          type: string
+          description: The resource that the permission applies to.
+          example: 'project'
+        resourceId:
+          type: string
+          description: The resource ID that the permission applies to.
+          example: 'c7ja4siy'
+    RoleSchema:
+      title: Role
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'administrator'
+        title:
+          type: string
+          example: 'Administrator'
+        description:
+          type: string
+          example: 'Administrators can manage billing details, legal contacts, organization users and manage project ownership'
+        isCustom:
+          type: boolean
+          example: false
+        resourceType:
+          type: string
+          example: 'organization'
+        resourceId:
+          type: string
+          example: 'or0Bc1hcJ'
+        appliesToUsers:
+          type: boolean
+          example: true
+        appliesToRobots:
+          type: boolean
+          example: true
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionSchema'
+    user:
+      title: user object
+      type: object
+      properties:
+        sanityUserId:
+          type: string
+          example: 'gDdcnv42e'
+        profile:
+          $ref: '#/components/schemas/UserProfile'
+        memberships:
+          type: array
+          items:
+            type: object
+            properties:
+              resourceType:
+                type: string
+                example: 'project'
+              resourceId:
+                type: string
+                example: 'c7ja4siy'
+              roleNames:
+                type: array
+                items:
+                  type: string
+                example: ['administrator', 'editor']
+    RequestSchema:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'request-id'
+        status:
+          type: string
+          example: 'pending'
+        resourceId:
+          type: string
+          example: 'project-id'
+        resourceType:
+          type: string
+          example: 'project'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-07-10T12:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-07-10T12:00:00Z'
+        updatedByUserId:
+          type: string
+          example: 'admin-id'
+        requestedByUserId:
+          type: string
+          example: 'user-id'
+        note:
+          type: string
+          example: 'Text describing the reason of the request'
+        requestedByUserProfile:
+          $ref: '#/components/schemas/UserProfile'
+        type:
+          $ref: '#/components/schemas/RequestType'
+        requestedRole:
+          type: string
+          example: 'editor'
+    ResourceType:
+      type: string
+      enum: [asset-library, organization, project]
+      example: project
+      description: |
+        Resources are entities that can be managed and accessed through the
+        Access API.
+    Invite:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/InviteStatus'
+        resourceType:
+          $ref: '#/components/schemas/ResourceType'
+        resourceId:
+          type: string
+        role:
+          type: string
+        email:
+          type: string
+          description: |
+            The email address of the invitee. Only present if the invite is still pending.
+        inviterType:
+          $ref: '#/components/schemas/InviterType'
+        inviterId:
+          type: string
+          description: |
+            The ID of the user or service that created the invite. Only present if the invite was created by a user.
+        inviteeId:
+          type: string
+          description: |
+            The ID of the user that accepted the invite. Only present if the invite has been accepted.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - status
+        - resourceType
+        - resourceId
+        - role
+        - inviterType
+        - createdAt
+        - updatedAt
+    InviteStatus:
+      type: string
+      enum: [pending, accepted, revoked]
+    InviterType:
+      type: string
+      enum: [user, service]
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+        familyName:
+          type: string
+        givenName:
+          type: string
+        middleName:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+          format: uri
+        provider:
+          type: string
+        tosAcceptedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        isCurrentUser:
+          type: boolean
+        providerId:
+          type: string
+    RequestType:
+      type: string
+      enum: [access, role]
+      example: access
+      description: The type of request.
+  requestBodies:
+    CreateInviteRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+              role:
+                type: string
+            required:
+              - email
+              - role
+    RoleRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+                minLength: 1
+                maxLength: 100
+              name:
+                type: string
+                pattern: '^[a-z0-9-_]+$'
+              description:
+                type: string
+                default: ''
+              resourceType:
+                type: string
+                example: 'organization'
+              resourceId:
+                type: string
+                example: 'or0Bc1hcJ'
+              assignableToUsers:
+                type: boolean
+                default: true
+              assignableToRobots:
+                type: boolean
+                default: true
+              permissions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: The name of the permission
+                      example: 'sanity.document.filter.mode'
+                    params:
+                      type: object
+                      description: The parameters for the permission. This is a key-value map of the permission's configuration.
+                      example: {dataset: 'development'}
+    PermissionRequestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                description: The type of permission.
+                example: 'sanity.document.filter'
+              name:
+                type: string
+                description: The name of the permission resource. This is a unique identifier for the permission but can be changed.
+                example: 'custom-document-filter'
+              title:
+                type: string
+                description: A human-readable title of the permission resource. This is used for display purposes.
+                example: 'Permission for "Legal" Folder'
+              description:
+                type: string
+                description: The description of the permission resource.
+                example: 'Permission for "Legal" Folder'
+              config:
+                type: object
+                description: Some permissions allow for additional configuration when used with document permissions.  Accepts a groq filter or a dataset name.
+                example: {'filter': "*[_type == 'legal']"}
+paths:
+  /vX/access/{resourceType}/{resourceId}/permissions:
+    get:
+      summary: Get Permissions.
+      description: >
+        Gets the available permissions within scope of a resource. These permissions can be applied to roles and are used to determine user/robot access to resources.
+        <br />
+        <br />
+        Requires permission: `sanity.{resourceType}.roles.read`
+      operationId: getPermissions
+      tags:
+        - Permissions
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+      responses:
+        '200':
+          description: The list of permission resources for the resource
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PermissionSchema'
+        '404':
+          description: Resource not found
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad request
+    post:
+      summary: Create a permission.
+      description: >
+        Creates a custom permission on a resource.
+        <br />
+        <br />
+        Requires permission: `sanity.{resourceType}.roles.create`
+        <br />
+        Requires feature: `advancedRolesManagement`
+        <br />
+        <br />
+        See Example. It creates a permission to allow a user to read legal documents in project `c7ja4siy` and dataset `production`.
+      operationId: createPermission
+      tags:
+        - Permissions
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/PermissionRequestBody'
+      responses:
+        '201':
+          description: Permission resource created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionSchema'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+  /vX/access/{resourceType}/{resourceId}/permissions/{permissionName}:
+    get:
+      summary: Get a permission
+      description: >
+        Gets a permission for a resource by name.
+        Requires permission
+          - `sanity.{resourceType}.roles.read`
+      operationId: getPermission
+      tags:
+        - Permissions
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/permissionNameParam'
+      responses:
+        '200':
+          description: The permission resource for the resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionSchema'
+        '404':
+          description: Resource not found
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad request
+    put:
+      summary: Update a permission
+      description: >
+        Updates a permission for a resource.
+        Requires permission
+          - `sanity.{resourceType}.roles.update`
+        Requires feature:
+          - `advancedRolesManagement`
+      operationId: updatePermission
+      tags:
+        - Permissions
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/permissionNameParam'
+      requestBody:
+        $ref: '#/components/requestBodies/PermissionRequestBody'
+      responses:
+        '200':
+          description: Permission resource updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionSchema'
+        '404':
+          description: Resource not found
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad request
+    delete:
+      summary: Delete a permission
+      description: >
+        Deletes a specific permission for a resource. Can only be used with custom permissions.
+        Requires permission
+          - `sanity.{resourceType}.roles.delete`
+        Requires feature:
+          - `advancedRolesManagement`
+      operationId: deletePermission
+      tags:
+        - Permissions
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/permissionNameParam'
+      responses:
+        '200':
+          description: Permission deleted successfully
+        '404':
+          description: Resource not found
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad request
+  /vX/access/permissions/me:
+    get:
+      summary: Get current user permissions.
+      description: >
+        Gets the available permissions within scope of a resource. These permissions can be applied to roles and are used to determine user/robot access to resources.
+      operationId: getMyPermissions
+      tags:
+        - Permissions
+      responses:
+        '200':
+          description: The list of permissions for all resources the current user has access to.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PermissionSchema'
+  /vX/access/{resourceType}/{resourceId}/users:
+    get:
+      summary: List all users of a resource and their assigned roles.
+
+      description: >
+        Retrieve a list of all users of a resource along with their assigned roles. When the resourceType is `organization`, this endpoint will return users of projects or asset libraries owned by the organization.
+        Requires permission
+          - `sanity.{resourceType}.members.read`
+      operationId: getUsers
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+      responses:
+        '200':
+          description: The list of resource users and their assigned roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+        '404':
+          description: Resource not found
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad request
+  /vX/access/{resourceType}/{resourceId}/users/{sanityUserId}:
+    get:
+      summary: Get user and roles.
+      description: Get the users for a single user of a resource.
+        Requires permission
+        - `sanity.{resourceType}.members.read`
+      operationId: getUser
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/sanityUserIdParam'
+      responses:
+        '200':
+          description: Get resource user and their roles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '404':
+          description: Resource not found
+        '400':
+          description: Bad request
+    delete:
+      summary: Remove a user from a resource.
+      description: >
+        This removes all roles. If the resourceType is `organization`, this will also remove the user from all projects and asset libraries owned by the organization.
+        Requires permission
+          - `sanity.{resourceType}.members.delete`
+      operationId: removeUser
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/sanityUserIdParam'
+      responses:
+        '200':
+          description: user removed from the resource
+        '400':
+          description: Invalid input
+        '404':
+          description: Resource not found
+  /vX/access/{resourceType}/{resourceId}/users/{sanityUserId}/roles/{roleName}:
+    put:
+      summary: Add a role to a user.
+      description: >
+        Add a role to a user.
+        Requires permission
+          - `sanity.{resourceType}.members.update`
+      operationId: addRoleToUser
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/sanityUserIdParam'
+        - $ref: '#/components/parameters/roleNameParam'
+      responses:
+        '201':
+          description: Role assigned to the user
+        '400':
+          description: Invalid input
+        '404':
+          description: Resource not found
+    delete:
+      summary: Remove a role from a user in a resource.
+      description: >
+        You cannot remove the last role from a user, you must have at least one role assigned to a user.
+        Requires permission
+          - `sanity.{resourceType}.members.update`
+      operationId: removeRoleFromUser
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/sanityUserIdParam'
+        - $ref: '#/components/parameters/roleNameParam'
+      responses:
+        '200':
+          description: Role removed from user
+        '400':
+          description: Invalid input
+        '404':
+          description: Resource not found
+  /vX/access/{resourceType}/{resourceId}/users/{sanityUserId}/permissions:
+    get:
+      summary: List permissions for a user
+      description: >
+        Normalized list permission resources for a user across all assigned roles.
+        Requires permissions:
+          - `sanity.{resourceType}.members.read` for resource scoped roles (e.g. project admin)
+      operationId: getuserPermissions
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/sanityUserIdParam'
+      responses:
+        '200':
+          description: List permissions for a user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PermissionSchema'
+  /vX/access/{resourceType}/{resourceId}/roles:
+    get:
+      summary: List roles assignable to a user on this resource.
+      description: >
+        Requires permission
+          - `sanity.{resourceType}.roles.read`
+      operationId: getRoles
+      tags:
+        - Roles
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/includeChildrenParam'
+      responses:
+        '200':
+          description: List roles for a resource.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleSchema'
+    post:
+      summary: Create a role
+      description: >
+        Requires permission:
+          - `sanity.{resourceType}.roles.create`
+        Requires feature:
+          - `advancedRolesManagement`
+      operationId: createRole
+      tags:
+        - Roles
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/RoleRequestBody'
+      responses:
+        '201':
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleSchema'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '404':
+          description: Resource not found
+  /vX/access/{resourceType}/{resourceId}/roles/{roleName}:
+    get:
+      summary: Get a role
+      description: >
+        Requires permission
+          - `sanity.{resourceType}.roles.read`
+
+      operationId: getRole
+      tags:
+        - Roles
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/roleNameParam'
+      responses:
+        '200':
+          description: Get a role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleSchema'
+        '404':
+          description: Role not found
+        '401':
+          description: Unauthorized
+    put:
+      summary: Update a role
+      description: >
+        Requires permission:
+          - `sanity.{resourceType}.roles.update`
+
+        Requires feature:
+          - `advancedRolesManagement`
+
+        Replaces existing object values including permissions.
+      operationId: updateRole
+      tags:
+        - Roles
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/roleNameParam'
+      requestBody:
+        $ref: '#/components/requestBodies/RoleRequestBody'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleSchema'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '404':
+          description: Role not found
+        '403':
+          description: Forbidden. Only custom roles can be changed.
+    delete:
+      summary: Delete a role
+      description: >
+        Requires permission:
+          - `sanity.{resourceType}.roles.delete` for resource scoped roles (e.g. project admin)
+
+        Requires feature:
+          - `advancedRolesManagement`
+
+        Cannot delete a role that is assigned to a user. The role needs to be removed from users first.
+      operationId: deleteRole
+      tags:
+        - Roles
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/roleNameParam'
+      responses:
+        '200':
+          description: Role deleted
+        '401':
+          description: Unauthorized
+        '404':
+          description: Role not found
+  /v2024-07-01/access/{resourceType}/{resourceId}/requests:
+    get:
+      summary: List all request for given project/organization
+      description: 'Permissions `sanity.{resourceType}.members.read`'
+      operationId: getRequests
+      tags:
+        - Requests
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/includeChildrenParam'
+      responses:
+        '200':
+          description: A list of Requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequestSchema'
+        '400':
+          description: Bad request
+        '404':
+          description: Request not found
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create a new Request
+      description: Creates a new request for the given project/organization. Requires an authenticated user.
+      operationId: createRequest
+      tags:
+        - Requests
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+      requestBody:
+        description: Request data to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  example: 'Text describing the reason of the request'
+                requestUrl:
+                  type: string
+                  example: 'https://sanity-studio.mycompany.io/doc/1234567890'
+                  description: >
+                    Optional URL to redirect the user to after accepting their request has been accepted.
+                    Do not include PII or other confidential information.
+                requestedRole:
+                  type: string
+                  example: 'editor'
+                  description: >
+                    Optional role requested by the user. The approver can assign a different role, this is just a suggestion. If the role does not exist, the request will still be created, no validation on the role will be done.
+                type:
+                  $ref: '#/components/schemas/RequestType'
+      responses:
+        '201':
+          description: Request created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestSchema'
+        '400':
+          description: Bad request
+        '404':
+          description: Request not found
+        '401':
+          description: Unauthorized
+  /v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestID}/accept:
+    put:
+      summary: Accept request
+      description: 'Permissions `sanity.{resourceType}.members.invite`'
+      operationId: acceptRequest
+      tags:
+        - Requests
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/requestIdParam'
+      requestBody:
+        description: Request data to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roleNames:
+                  type: array
+                  items:
+                    type: string
+                    example: 'admin'
+      responses:
+        '200':
+          description: Request accepted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestSchema'
+        '400':
+          description: Bad request
+        '404':
+          description: Request not found
+        '401':
+          description: Unauthorized
+  /v2024-07-01/access/{resourceType}/{resourceId}/requests/{requestID}/decline:
+    put:
+      summary: Decline request
+      description: 'Permissions `sanity.{resourceType}.members.invite`'
+      operationId: declineRequest
+      tags:
+        - Requests
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/requestIdParam'
+      responses:
+        '200':
+          description: Request declined successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestSchema'
+        '400':
+          description: Bad request
+        '404':
+          description: Request not found
+        '401':
+          description: Unauthorized
+  /v2024-07-01/access/requests/me:
+    get:
+      summary: List all request for current user
+      description: Requires an authenticated user.
+      operationId: getMyRequests
+      tags:
+        - Requests
+      responses:
+        '200':
+          description: A list of user Requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequestSchema'
+        '400':
+          description: Bad request
+        '404':
+          description: Request not found
+        '401':
+          description: Unauthorized
+
+  /vX/access/{resourceType}/{resourceId}/invites:
+    get:
+      tags: [Invites]
+      operationId: getInvites
+      summary: Get invites
+      description: |
+        Retrieves a list of invites for the specified resource.
+
+        Only pending invites are retrieved by default. Use the optional `status`
+        parameter to change the filter behavior. You can select multiple
+        statuses by repeating the parameter.
+
+        ### Children invites
+
+        By default, only invites for the specified resource are returned. Use the
+        optional `includeChildren` parameter to include invites for children
+        resources as well. This only applies to `organization` resources.
+
+        ### Authorization
+
+        This endpoint requires an authenticated user session with the following
+        permissions:
+        - `sanity.{resourceType}.members.read`
+
+        This endpoint is accessible to internal service sessions.
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/inviteStatus'
+        - $ref: '#/components/parameters/includeChildrenParam'
+      responses:
+        '200':
+          description: Invite list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invite'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+
+    post:
+      tags: [Invites]
+      operationId: createInvite
+      summary: Create invite
+      description: |
+        Creates an invite for the specified resource.
+
+        The invitee will receive an email with a link to accept the invite.
+
+        Each invitee can only receive one invite per resource and role.
+        Attempting to create an invite using a non-existent role, or a role that
+        cannot be granted to users will result in a Bad Request error.
+
+        ### Unavailable resources
+
+        If the underlying resource is unavailable then a Bad Request error will
+        be returned. A common example of an unavailable resource is a project
+        that is blocked or archived.
+
+        ### Authorization
+
+        This endpoint requires an authenticated user session with the following
+        permissions:
+        - `sanity.{resourceType}.members.invite`
+
+        Additionally, only administrators can invite other administrators.
+
+        This endpoint is accessible to internal service sessions.
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/CreateInviteRequestBody'
+      responses:
+        '201':
+          description: Invite created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invite'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+
+  /vX/access/{resourceType}/{resourceId}/invites/{inviteId}:
+    delete:
+      tags: [Invites]
+      operationId: revokeInvite
+      summary: Revoke invite
+      description: |
+        Revokes an invite.
+
+        Attempting to revoke an invite that has already been accepted or revoked
+        will result in a Bad Request error.
+
+        ### Authorization
+
+        This endpoint requires an authenticated user session with the following
+        permissions:
+        - `sanity.{resourceType}.members.invite`
+
+        This endpoint is accessible to internal service sessions.
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/inviteId'
+      responses:
+        '204':
+          description: Invite revoked.
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          description: Resource or invite not found.
+
+  /vX/access/{resourceType}/{resourceId}/invites/token/{inviteToken}:
+    get:
+      tags: [Invites]
+      operationId: getInviteByToken
+      summary: Get invite
+      description: |
+        Retrieves an invite using its token.
+
+        ### Authorization
+
+        This endpoint does not require authentication.
+
+        This endpoint is accessible to internal service sessions.
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/inviteToken'
+      responses:
+        '200':
+          description: Invite found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invite'
+        '404':
+          description: Resource or invite not found.
+
+  /vX/access/{resourceType}/{resourceId}/invites/token/{inviteToken}/accept:
+    post:
+      tags: [Invites]
+      operationId: acceptInvite
+      summary: Accept invite
+      description: |
+        Accepts an invite using its token.
+
+        Attempting to accept an invite that is already accepted or revoked will
+        result in a Bad Request error.
+
+        Once the invite has been accepted, the user will have access to the
+        resource with the role it has been assigned to them as part of the
+        invitation.
+
+        > **Access is propagated internally and may take a up to a few minutes to
+        > be fully available across all systems.**
+
+        ### Unavailable resources
+
+        If the underlying resource is unavailable then a Bad Request error will
+        be returned. A common example of an unavailable resource is a project
+        that is blocked or archived.
+
+        ### Member quota
+
+        Some resources have a limit on the number of members. If accepting an
+        invite would go over this limit, then a Payment Required error is
+        returned.
+
+        ### Authorization
+
+        This endpoint requires an authenticated user session.
+
+        This endpoint is NOT accessible to internal service sessions. Any
+        attempt will result in a 403 Forbidden error.
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/inviteToken'
+      responses:
+        '204':
+          description: Invite accepted.
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '402':
+          description: Resource reached its allowed number of members.
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          description: Resource or invite not found.

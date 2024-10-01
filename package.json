@@ -1,0 +1,19 @@
+{
+  "name": "access-api-demo",
+  "version": "0.0.1",
+  "description": "Beta Access API Demo",
+  "main": "src/index.ts",
+  "scripts": {
+    "generate:sdk:typescript": "tsx ./scripts/generateTypescriptLibrary.ts",
+    "generate:docs": "redocly build-docs ./specs/beta-access-api.yaml -o ./docs/beta-access-api.html --title beta-access-api"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@hey-api/client-fetch": "^0.4.0",
+    "@hey-api/openapi-ts": "^0.53.5",
+    "@redocly/cli": "^1.25.4",
+    "@types/node": "^22.7.4",
+    "tsx": "^4.19.1"
+  }
+}
