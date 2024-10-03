@@ -66,7 +66,7 @@ info:
       <li><code>Access</code> is now the root path for managing access-based resources. Previously it was organization and project but these are now nested under the access root.</li>
       <li>Internal IDs are no longer exposed for permissions or roles. The <code>name</code> property is now used as the unique identifier for permissions and roles.</li>
       <li><code>Permissions</code> now represent <code>grants</code>, <code>resources</code> and <code>permissionResourceSchema</code> which are now legacy terms.</li>
-      <li>The API /organization/:organizationId/Users returns users for all resources owned by the organization. Previously, a client would have to make a request for each resource (e.g. project) individually.</li>
+      <li>The API /organization/:organizationId/users returns users for all resources owned by the organization. Previously, a client would have to make a request for each resource (e.g. project) individually.</li>
       <li><code>users</code> replaces the term <code>ACL</code>. Users are to represent individuals assigned roles within the organization.</li>
       <li>The pre-defined roles can be completely removed from a resource. Previously, default roles could not be removed from a resource. E.g. a project required at least one project administrator, even if there were custom roles that would cover the same use case.</li>
     </ul>
@@ -254,12 +254,10 @@ components:
       required:
         - name
         - title
-        - description
         - resourceType
         - resourceId
         - appliesToUsers
         - appliesToRobots
-        - permissions
     User:
       title: User
       type: object
