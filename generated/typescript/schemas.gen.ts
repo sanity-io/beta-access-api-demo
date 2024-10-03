@@ -81,7 +81,7 @@ export const RoleSchema = {
             }
         }
     },
-    required: ['name', 'title', 'description', 'resourceType', 'resourceId', 'appliesToUsers', 'appliesToRobots', 'permissions']
+    required: ['name', 'title', 'resourceType', 'resourceId', 'appliesToUsers', 'appliesToRobots']
 } as const;
 
 export const UserSchema = {

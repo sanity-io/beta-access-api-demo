@@ -30,13 +30,13 @@ export type Permission = {
 export type Role = {
     name: string;
     title: string;
-    description: string;
+    description?: string;
     isCustom?: boolean;
     resourceType: string;
     resourceId: string;
     appliesToUsers: boolean;
     appliesToRobots: boolean;
-    permissions: Array<Permission>;
+    permissions?: Array<Permission>;
 };
 
 export type User = {
