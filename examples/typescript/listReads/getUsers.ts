@@ -1,7 +1,7 @@
-import { Users } from '../../generated/typescript';
-import { initApi } from './util/initApi';
+import { Users } from '../../../generated/typescript';
+import { initApi } from '../util/initApi';
 
-initApi();
+initApi(process.env.PROJECT_ROBOT_TOKEN);
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
@@ -27,8 +27,8 @@ async function readUsers(projectId: string) {
   for (const user of users) {
     console.log(`- ${user.profile.displayName} (${user.profile.email} provided by ${user.profile.provider}) has roles:`);
     for (const membership of user.memberships) {
-      for (const role of membership.roleNames) {
-        console.log(`  - ${role}`);
+      for (const entry of membership) {
+        console.log(`  - ${entry.roleNames}`);
       }
     }
   }

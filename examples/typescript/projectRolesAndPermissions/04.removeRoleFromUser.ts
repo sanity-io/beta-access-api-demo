@@ -1,11 +1,11 @@
-import { Users } from '../../generated/typescript';
-import { initApi } from './util/initApi';
+import { Users } from '../../../generated/typescript';
+import { initApi } from '../util/initApi';
 
-initApi();
+initApi(process.env.PROJECT_ROBOT_TOKEN);
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 const email = process.env.EMAIL_ADDRESS || 'john.doe@example.com';
-const roleName = process.env.ROLE_NAME || 'developer';
+const roleName = process.env.ROLE_NAME || 'my-test-role';
 
 async function assignRole(projectId: string, email: string, roleName: string) {
   const {data: users, error} = await Users.getUsers({
@@ -32,7 +32,7 @@ async function assignRole(projectId: string, email: string, roleName: string) {
     return;
   }
 
-  const {data, error: addError} = await Users.addRoleToUser({
+  const {data, error: removeError} = await Users.removeRoleFromUser({
     path: {
       resourceId: projectId,
       resourceType: 'project',
@@ -41,8 +41,8 @@ async function assignRole(projectId: string, email: string, roleName: string) {
     }
   })
 
-  if (addError) {
-    console.error(addError);
+  if (removeError) {
+    console.error(removeError);
     return;
   }
 

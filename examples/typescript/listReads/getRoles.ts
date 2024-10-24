@@ -1,7 +1,7 @@
-import { Roles } from '../../generated/typescript';
-import { initApi } from './util/initApi';
+import { Roles } from '../../../generated/typescript';
+import { initApi } from '../util/initApi';
 
-initApi();
+initApi(process.env.PROJECT_ROBOT_TOKEN);
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
@@ -26,8 +26,11 @@ async function readRoles(projectId: string) {
   console.log("Roles");
   for (const role of roles) {
     console.log(`- ${role.title} (identifier: ${role.name}) has permissions:`);
-    for (const permission of role.permissions) {
-      console.log(`  - ${permission.title} (identifier: ${permission.name})`);
+    for (const permission of role.permissions || []) {
+      console.log(`  - ${permission.name} (identifier: ${permission.name})`);
+      if (permission.params) {
+        console.log(`    - params: ${JSON.stringify(permission.params)}`);
+      }
     }
   }
 }

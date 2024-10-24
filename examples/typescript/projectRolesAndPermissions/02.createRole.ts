@@ -1,7 +1,7 @@
-import { initApi } from './util/initApi';
-import { Roles } from '../../generated/typescript';
+import { initApi } from '../util/initApi';
+import { Roles } from '../../../generated/typescript';
 
-initApi();
+initApi(process.env.PROJECT_ROBOT_TOKEN);
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
@@ -21,6 +21,9 @@ async function createRole(projectId: string, roleName: string) {
         },
         {
           name: 'sanity.projects.roles.read',
+        },
+        {
+          name: 'my-test-permission.mode',
         },
       ],
     },
