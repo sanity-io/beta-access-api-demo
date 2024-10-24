@@ -4,7 +4,7 @@ export type Permission = {
     /**
      * The type of permission.
      */
-    type: string;
+    type: 'sanity.document.filter' | 'sanity.document.filter.mode' | 'sanity.organization' | 'sanity.organization.legal' | 'sanity.organization.members' | 'sanity.organization.projects' | 'sanity.organization.roles' | 'sanity.organization.sso' | 'sanity.project' | 'sanity.project.cors' | 'sanity.project.datasets' | 'sanity.project.graphql' | 'sanity.project.members' | 'sanity.project.roles' | 'sanity.project.tags' | 'sanity.project.tokens' | 'sanity.project.usage' | 'sanity.project.webhooks';
     /**
      * The name of the permission. This is the unique identifier for the resource.
      */
@@ -25,7 +25,22 @@ export type Permission = {
      * The resource ID that the permission applies to.
      */
     resourceId: string;
+    /**
+     * The organization ID that the permission applies to. Used for wildcard permissions where the resourceId is `*`.
+     */
+    ownerOrganizationId?: string;
+    /**
+     * The parameters for the permission. This is a key-value map of the permission's configuration.
+     */
+    params?: {
+        [key: string]: unknown;
+    };
 };
+
+/**
+ * The type of permission.
+ */
+export type type = 'sanity.document.filter' | 'sanity.document.filter.mode' | 'sanity.organization' | 'sanity.organization.legal' | 'sanity.organization.members' | 'sanity.organization.projects' | 'sanity.organization.roles' | 'sanity.organization.sso' | 'sanity.project' | 'sanity.project.cors' | 'sanity.project.datasets' | 'sanity.project.graphql' | 'sanity.project.members' | 'sanity.project.roles' | 'sanity.project.tags' | 'sanity.project.tokens' | 'sanity.project.usage' | 'sanity.project.webhooks';
 
 export type Role = {
     name: string;
@@ -36,17 +51,29 @@ export type Role = {
     resourceId: string;
     appliesToUsers: boolean;
     appliesToRobots: boolean;
-    permissions?: Array<Permission>;
+    permissions?: Array<{
+        name: string;
+        /**
+         * The parameters for the permission. This is a key-value map of the permission's configuration.
+         */
+        params?: {
+            [key: string]: unknown;
+        };
+    }>;
 };
+
+export type Membership = Array<{
+    resourceType: string;
+    resourceId: string;
+    roleNames: Array<(string)>;
+}>;
+
+export type Memberships = Array<Membership>;
 
 export type User = {
     sanityUserId: string;
     profile: UserProfile;
-    memberships: Array<{
-        resourceType: string;
-        resourceId: string;
-        roleNames: Array<(string)>;
-    }>;
+    memberships: Memberships;
 };
 
 export type Request = {
@@ -70,6 +97,32 @@ export type Request = {
  *
  */
 export type ResourceType = 'organization' | 'project';
+
+/**
+ * A robot is a service account that can be used to authenticate with the API.
+ */
+export type Robot = {
+    /**
+     * The unique identifier for the robot.
+     */
+    readonly id: string;
+    /**
+     * A human-readable label for the robot.
+     */
+    label: string;
+    /**
+     * The creation date of the robot.
+     */
+    readonly createdAt: string;
+    memberships: Memberships;
+};
+
+export type RobotWithToken = Robot & {
+    /**
+     * The secret token for the robot.
+     */
+    readonly token: string;
+};
 
 export type Invite = {
     id: string;
@@ -136,6 +189,11 @@ export type ParameterresourceTypeParam = ResourceType;
  * The resource ID to scope the access request to. Must be a valid ID for the resource type.
  */
 export type ParameterresourceIdParam = string;
+
+/**
+ * The robot unique identifier.
+ */
+export type ParameterrobotIdParam = string;
 
 /**
  * The role name
@@ -401,7 +459,7 @@ export type AddRoleToUserData = {
     };
 };
 
-export type AddRoleToUserResponse = (unknown);
+export type AddRoleToUserResponse = (User);
 
 export type AddRoleToUserError = (unknown);
 
@@ -450,6 +508,23 @@ export type GetuserPermissionsData = {
 export type GetuserPermissionsResponse = (Array<Permission>);
 
 export type GetuserPermissionsError = unknown;
+
+export type AddDefaultRoleToUsersData = {
+    path: {
+        /**
+         * The resource ID to scope the access request to. Must be a valid ID for the resource type.
+         */
+        resourceId: string;
+        /**
+         * The resource to scope access requests to.
+         */
+        resourceType: ResourceType;
+    };
+};
+
+export type AddDefaultRoleToUsersResponse = (unknown);
+
+export type AddDefaultRoleToUsersError = (unknown);
 
 export type GetRolesData = {
     path: {
@@ -815,3 +890,92 @@ export type AcceptInviteData = {
 export type AcceptInviteResponse = (void);
 
 export type AcceptInviteError = (unknown);
+
+export type ListRobotsData = {
+    path: {
+        /**
+         * The resource ID to scope the access request to. Must be a valid ID for the resource type.
+         */
+        resourceId: string;
+        /**
+         * The resource to scope access requests to.
+         */
+        resourceType: ResourceType;
+    };
+    query?: {
+        /**
+         * Whether to include children resources in the response. Only applies to `organization` resources.
+         */
+        includeChildren?: boolean;
+    };
+};
+
+export type ListRobotsResponse = (Array<Robot>);
+
+export type ListRobotsError = (unknown);
+
+export type CreateRobotData = {
+    body: {
+        /**
+         * A human-readable label for the robot.
+         */
+        label: string;
+        roles?: Memberships;
+    };
+    path: {
+        /**
+         * The resource ID to scope the access request to. Must be a valid ID for the resource type.
+         */
+        resourceId: string;
+        /**
+         * The resource to scope access requests to.
+         */
+        resourceType: ResourceType;
+    };
+};
+
+export type CreateRobotResponse = (RobotWithToken);
+
+export type CreateRobotError = (unknown);
+
+export type GetRobotData = {
+    path: {
+        /**
+         * The resource ID to scope the access request to. Must be a valid ID for the resource type.
+         */
+        resourceId: string;
+        /**
+         * The resource to scope access requests to.
+         */
+        resourceType: ResourceType;
+        /**
+         * The robot unique identifier.
+         */
+        robotId: string;
+    };
+};
+
+export type GetRobotResponse = (Robot);
+
+export type GetRobotError = (unknown);
+
+export type DeleteRobotData = {
+    path: {
+        /**
+         * The resource ID to scope the access request to. Must be a valid ID for the resource type.
+         */
+        resourceId: string;
+        /**
+         * The resource to scope access requests to.
+         */
+        resourceType: ResourceType;
+        /**
+         * The robot unique identifier.
+         */
+        robotId: string;
+    };
+};
+
+export type DeleteRobotResponse = (void);
+
+export type DeleteRobotError = (unknown);
