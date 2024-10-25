@@ -112,28 +112,25 @@ export const RoleSchema = {
 } as const;
 
 export const MembershipSchema = {
-    type: 'array',
-    items: {
-        type: 'object',
-        properties: {
-            resourceType: {
-                type: 'string',
-                example: 'project'
-            },
-            resourceId: {
-                type: 'string',
-                example: 'c7ja4siy'
-            },
-            roleNames: {
-                type: 'array',
-                items: {
-                    type: 'string'
-                },
-                example: ['administrator', 'editor']
-            }
+    type: 'object',
+    properties: {
+        resourceType: {
+            type: 'string',
+            example: 'project'
         },
-        required: ['resourceType', 'resourceId', 'roleNames']
-    }
+        resourceId: {
+            type: 'string',
+            example: 'c7ja4siy'
+        },
+        roleNames: {
+            type: 'array',
+            items: {
+                type: 'string'
+            },
+            example: ['administrator', 'editor']
+        }
+    },
+    required: ['resourceType', 'resourceId', 'roleNames']
 } as const;
 
 export const MembershipsSchema = {

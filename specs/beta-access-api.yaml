@@ -308,25 +308,23 @@ components:
         - appliesToUsers
         - appliesToRobots
     Membership:
-      type: array
-      items:
-        type: object
-        properties:
-          resourceType:
+      type: object
+      properties:
+        resourceType:
+          type: string
+          example: 'project'
+        resourceId:
+          type: string
+          example: 'c7ja4siy'
+        roleNames:
+          type: array
+          items:
             type: string
-            example: 'project'
-          resourceId:
-            type: string
-            example: 'c7ja4siy'
-          roleNames:
-            type: array
-            items:
-              type: string
-            example: ['administrator', 'editor']
-        required:
-          - resourceType
-          - resourceId
-          - roleNames
+          example: ['administrator', 'editor']
+      required:
+        - resourceType
+        - resourceId
+        - roleNames
     Memberships:
       type: array
       items:
@@ -538,7 +536,7 @@ components:
                 type: string
                 description: A human-readable label for the robot.
                 example: 'My Robot'
-              roles:
+              memberships:
                 $ref: '#/components/schemas/Memberships'
             required:
               - label
@@ -577,16 +575,10 @@ components:
                 type: string
                 default: ''
                 example: 'Custom role for project'
-              resourceType:
-                type: string
-                example: 'project'
-              resourceId:
-                type: string
-                example: 'c7ja4siy'
-              assignableToUsers:
+              appliesToUsers:
                 type: boolean
                 default: true
-              assignableToRobots:
+              appliesToRobots:
                 type: boolean
                 default: true
               permissions:
@@ -609,8 +601,8 @@ components:
               - name
               - resourceType
               - resourceId
-              - assignableToUsers
-              - assignableToRobots
+              - appliesToUsers
+              - appliesToRobots
               - permissions
     PermissionRequestBody:
       content:

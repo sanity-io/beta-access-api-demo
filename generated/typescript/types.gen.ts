@@ -62,11 +62,11 @@ export type Role = {
     }>;
 };
 
-export type Membership = Array<{
+export type Membership = {
     resourceType: string;
     resourceId: string;
     roleNames: Array<(string)>;
-}>;
+};
 
 export type Memberships = Array<Membership>;
 
@@ -554,10 +554,8 @@ export type CreateRoleData = {
         title: string;
         name: string;
         description?: string;
-        resourceType: string;
-        resourceId: string;
-        assignableToUsers: boolean;
-        assignableToRobots: boolean;
+        appliesToUsers: boolean;
+        appliesToRobots: boolean;
         permissions: Array<{
             /**
              * The name of the permission
@@ -613,10 +611,8 @@ export type UpdateRoleData = {
         title: string;
         name: string;
         description?: string;
-        resourceType: string;
-        resourceId: string;
-        assignableToUsers: boolean;
-        assignableToRobots: boolean;
+        appliesToUsers: boolean;
+        appliesToRobots: boolean;
         permissions: Array<{
             /**
              * The name of the permission
@@ -920,7 +916,7 @@ export type CreateRobotData = {
          * A human-readable label for the robot.
          */
         label: string;
-        roles?: Memberships;
+        memberships: Memberships;
     };
     path: {
         /**

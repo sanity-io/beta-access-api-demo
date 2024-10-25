@@ -3,7 +3,7 @@ import { initApi } from '../util/initApi';
 
 // Requires a user session with organization admin permissions
 // Make sure to pass in a user session and not a robot session
-initApi(process.env.USER_TOKEN);
+initApi("USER_TOKEN");
 
 const organizationId = process.env.ORGANIZATION_ID || '<organization-id>';
 
@@ -17,16 +17,14 @@ async function createOrganizationRobotRole(organizationId: string, robotRoleName
       title: robotRoleName,
       name: robotRoleName,
       description: `Organization robot role to manage users`,
-      assignableToRobots: true,
-      assignableToUsers: false,
-      resourceType: 'organization',
-      resourceId: organizationId,
+      appliesToRobots: true,
+      appliesToUsers: false,
       permissions: [
         {
           name: 'sanity.project.members.read',
         },
         {
-          name: 'sanity.project.members.write',
+          name: 'sanity.project.member.update',
         },
         {
           name: 'sanity.project.members.delete',
@@ -38,7 +36,7 @@ async function createOrganizationRobotRole(organizationId: string, robotRoleName
           name: 'sanity.organization.members.read',
         },
         {
-          name: 'sanity.organization.members.write',
+          name: 'sanity.organization.members.update',
         },
         {
           name: 'sanity.organization.members.delete',

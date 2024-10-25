@@ -1,12 +1,14 @@
 import dotenv from 'dotenv';
 import { client } from '../../../generated/typescript';
 
-export function initApi(token?: string) {
+export function initApi(tokenEnvVar: string = "") {
   dotenv.config();
 
   client.setConfig({
     baseUrl: process.env.BASE_URL || 'https://api.sanity.io/',
   });
+
+  const token = process.env[tokenEnvVar];
 
   client.interceptors.request.use((request, options) => {
     if (token) {
