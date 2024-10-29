@@ -81,6 +81,8 @@ servers:
 tags:
   - name: Users
     description: Administrate the users that have organization roles assigned to them.
+  - name: Robots
+    description: Manage robots and robot tokens.
   - name: Roles
     description: Administrate the roles assignable to users of an organization or application.
   - name: Permissions
@@ -119,6 +121,14 @@ components:
         type: string
       description: The resource ID to scope the access request to. Must be a valid ID for the resource type.
       example: 'c7ja4siy'
+    robotIdParam:
+      in: path
+      name: robotId
+      required: true
+      schema:
+        type: string
+      description: The robot unique identifier.
+      example: 'gJh7daoq4'
     roleNameParam:
       in: path
       name: roleName
@@ -191,6 +201,27 @@ components:
       properties:
         type:
           type: string
+          enum:
+            [
+              sanity.document.filter,
+              sanity.document.filter.mode,
+              sanity.organization,
+              sanity.organization.legal,
+              sanity.organization.members,
+              sanity.organization.projects,
+              sanity.organization.roles,
+              sanity.organization.sso,
+              sanity.project,
+              sanity.project.cors,
+              sanity.project.datasets,
+              sanity.project.graphql,
+              sanity.project.members,
+              sanity.project.roles,
+              sanity.project.tags,
+              sanity.project.tokens,
+              sanity.project.usage,
+              sanity.project.webhooks,
+            ]
           description: The type of permission.
           example: 'sanity.project.members'
         name:
@@ -213,6 +244,14 @@ components:
           type: string
           description: The resource ID that the permission applies to.
           example: 'c7ja4siy'
+        ownerOrganizationId:
+          type: string
+          description: The organization ID that the permission applies to. Used for wildcard permissions where the resourceId is `*`.
+          example: 'or0Bc1hcJ'
+        params:
+          type: object
+          description: The parameters for the permission. This is a key-value map of the permission's configuration.
+          example: {filter: '*[_type == "legal"]'}
       required:
         - type
         - name
@@ -250,7 +289,17 @@ components:
         permissions:
           type: array
           items:
-            $ref: '#/components/schemas/Permission'
+            type: object
+            properties:
+              name:
+                type: string
+                example: 'sanity.document.filter.mode'
+              params:
+                type: object
+                description: The parameters for the permission. This is a key-value map of the permission's configuration.
+                example: {dataset: 'development'}
+            required:
+              - name
       required:
         - name
         - title
@@ -258,6 +307,28 @@ components:
         - resourceId
         - appliesToUsers
         - appliesToRobots
+    Membership:
+      type: object
+      properties:
+        resourceType:
+          type: string
+          example: 'project'
+        resourceId:
+          type: string
+          example: 'c7ja4siy'
+        roleNames:
+          type: array
+          items:
+            type: string
+          example: ['administrator', 'editor']
+      required:
+        - resourceType
+        - resourceId
+        - roleNames
+    Memberships:
+      type: array
+      items:
+        $ref: '#/components/schemas/Membership'
     User:
       title: User
       type: object
@@ -268,25 +339,7 @@ components:
         profile:
           $ref: '#/components/schemas/UserProfile'
         memberships:
-          type: array
-          items:
-            type: object
-            properties:
-              resourceType:
-                type: string
-                example: 'project'
-              resourceId:
-                type: string
-                example: 'c7ja4siy'
-              roleNames:
-                type: array
-                items:
-                  type: string
-                example: ['administrator', 'editor']
-            required:
-              - resourceType
-              - resourceId
-              - roleNames
+          $ref: '#/components/schemas/Memberships'
       required:
         - sanityUserId
         - profile
@@ -344,6 +397,40 @@ components:
       description: |
         Resources are entities that can be managed and accessed through the
         Access API.
+    Robot:
+      type: object
+      description: A robot is a service account that can be used to authenticate with the API.
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the robot.
+          readOnly: true
+        label:
+          type: string
+          description: A human-readable label for the robot.
+        createdAt:
+          type: string
+          format: date-time
+          description: The creation date of the robot.
+          readOnly: true
+        memberships:
+          $ref: '#/components/schemas/Memberships'
+      required:
+        - id
+        - label
+        - createdAt
+        - memberships
+    RobotWithToken:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Robot'
+      properties:
+        token:
+          type: string
+          description: The secret token for the robot.
+          readOnly: true
+      required:
+        - token
     Invite:
       type: object
       properties:
@@ -438,6 +525,22 @@ components:
       example: access
       description: The type of request.
   requestBodies:
+    CreateRobotRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              label:
+                type: string
+                description: A human-readable label for the robot.
+                example: 'My Robot'
+              memberships:
+                $ref: '#/components/schemas/Memberships'
+            required:
+              - label
+              - memberships
     CreateInviteRequestBody:
       required: true
       content:
@@ -463,22 +566,19 @@ components:
                 type: string
                 minLength: 1
                 maxLength: 100
+                example: 'Custom Role'
               name:
                 type: string
                 pattern: '^[a-z0-9-_]+$'
+                example: 'custom-role'
               description:
                 type: string
                 default: ''
-              resourceType:
-                type: string
-                example: 'organization'
-              resourceId:
-                type: string
-                example: 'or0Bc1hcJ'
-              assignableToUsers:
+                example: 'Custom role for project'
+              appliesToUsers:
                 type: boolean
                 default: true
-              assignableToRobots:
+              appliesToRobots:
                 type: boolean
                 default: true
               permissions:
@@ -501,8 +601,8 @@ components:
               - name
               - resourceType
               - resourceId
-              - assignableToUsers
-              - assignableToRobots
+              - appliesToUsers
+              - appliesToRobots
               - permissions
     PermissionRequestBody:
       content:
@@ -725,6 +825,25 @@ paths:
           description: Unauthorized
         '400':
           description: Bad request
+  /vX/access/{resourceType}/{resourceId}/users/roles/default:
+    put:
+      summary: Apply organization default role to all users.
+      description: >
+        Add default role to all resource users.
+        Limited to Organization.
+        Requires permission
+          - `sanity.organization.members.update`
+      operationId: addDefaultRoleToUsers
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+      responses:
+        '201':
+          description: Roles assigned to the resource users
+        '400':
+          description: Invalid input
+        '404':
+          description: Resource not found
   /vX/access/{resourceType}/{resourceId}/users/{sanityUserId}:
     get:
       summary: Get user and roles.
@@ -787,6 +906,10 @@ paths:
       responses:
         '201':
           description: Role assigned to the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
         '400':
           description: Invalid input
         '404':
@@ -1322,3 +1445,146 @@ paths:
           $ref: '#/components/responses/forbidden'
         '404':
           description: Resource or invite not found.
+
+  /vX/access/{resourceType}/{resourceId}/robots:
+    get:
+      tags: [Robots]
+      operationId: listRobots
+      summary: List robots with access to this resource
+      description: |
+        Retrieves a list of robots that have access to the specified resource.
+
+        ### Access to children resources
+
+        By default, this endpoint returns robots that have at least one role on
+        the specified resource. Use the optional `includeChildren` parameter to
+        include robots that have a role on children resources as well. This
+        only applies to `organization` resources.
+
+        ### Authorization
+
+        This endpoint requires an authenticated user session with the following
+        permissions:
+        - `sanity.{resourceType}.tokens.read`
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/includeChildrenParam'
+      responses:
+        '200':
+          description: List of robots.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Robot'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+
+    post:
+      tags: [Robots]
+      operationId: createRobot
+      summary: Create robot and associated token
+      description: |
+        Creates a robot with the specified role grants and returns its secret
+        token.
+
+        The API currently only supports organization-scoped robots. This means
+        that `organization` must be provided to the `resourceType` parameter.
+
+        Only the specified resource and its children resources can be specified
+        in the role grants. The robot will not have access to other resources.
+
+        ### Secret token
+
+        The secret token is only returned once and can not be retrieved again.
+        If the token is lost, a new robot must be created. The previous robot
+        should be deleted.
+
+        ### Authorization
+
+        This endpoint requires an authenticated user session with the following
+        permissions:
+        - `sanity.{resourceType}.tokens.create`
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/CreateRobotRequestBody'
+      responses:
+        '201':
+          description: Robot created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RobotWithToken'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/resourceNotFound'
+
+  /vX/access/{resourceType}/{resourceId}/robots/{robotId}:
+    get:
+      tags: [Robots]
+      operationId: getRobot
+      summary: Get robot metadata
+      description: |
+        Retrieves a robot using its unique identifier.
+
+        It's not possible to retrieve a robot token.
+
+        ### Authorization
+
+        This endpoint requires an authenticated user session with the following
+        permissions:
+        - `sanity.{resourceType}.tokens.read`
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/robotIdParam'
+      responses:
+        '200':
+          description: Robot found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Robot'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource or robot not found.
+
+    delete:
+      tags: [Robots]
+      operationId: deleteRobot
+      summary: Delete robot and associated token
+      description: |
+        Deletes a robot and revokes its token.
+
+        ### Authorization
+
+        This endpoint requires an authenticated user session with the following
+        permissions:
+        - `sanity.{resourceType}.tokens.delete`
+      parameters:
+        - $ref: '#/components/parameters/resourceTypeParam'
+        - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/robotIdParam'
+      responses:
+        '204':
+          description: Robot deleted.
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource or robot not found.

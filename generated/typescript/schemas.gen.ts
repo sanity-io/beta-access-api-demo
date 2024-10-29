@@ -6,6 +6,7 @@ export const PermissionSchema = {
     properties: {
         type: {
             type: 'string',
+            enum: ['sanity.document.filter', 'sanity.document.filter.mode', 'sanity.organization', 'sanity.organization.legal', 'sanity.organization.members', 'sanity.organization.projects', 'sanity.organization.roles', 'sanity.organization.sso', 'sanity.project', 'sanity.project.cors', 'sanity.project.datasets', 'sanity.project.graphql', 'sanity.project.members', 'sanity.project.roles', 'sanity.project.tags', 'sanity.project.tokens', 'sanity.project.usage', 'sanity.project.webhooks'],
             description: 'The type of permission.',
             example: 'sanity.project.members'
         },
@@ -33,6 +34,18 @@ export const PermissionSchema = {
             type: 'string',
             description: 'The resource ID that the permission applies to.',
             example: 'c7ja4siy'
+        },
+        ownerOrganizationId: {
+            type: 'string',
+            description: 'The organization ID that the permission applies to. Used for wildcard permissions where the resourceId is `*`.',
+            example: 'or0Bc1hcJ'
+        },
+        params: {
+            type: 'object',
+            description: "The parameters for the permission. This is a key-value map of the permission's configuration.",
+            example: {
+                filter: '*[_type == "legal"]'
+            }
         }
     },
     required: ['type', 'name', 'title', 'resourceType', 'resourceId']
@@ -77,11 +90,54 @@ export const RoleSchema = {
         permissions: {
             type: 'array',
             items: {
-                '$ref': '#/components/schemas/Permission'
+                type: 'object',
+                properties: {
+                    name: {
+                        type: 'string',
+                        example: 'sanity.document.filter.mode'
+                    },
+                    params: {
+                        type: 'object',
+                        description: "The parameters for the permission. This is a key-value map of the permission's configuration.",
+                        example: {
+                            dataset: 'development'
+                        }
+                    }
+                },
+                required: ['name']
             }
         }
     },
     required: ['name', 'title', 'resourceType', 'resourceId', 'appliesToUsers', 'appliesToRobots']
+} as const;
+
+export const MembershipSchema = {
+    type: 'object',
+    properties: {
+        resourceType: {
+            type: 'string',
+            example: 'project'
+        },
+        resourceId: {
+            type: 'string',
+            example: 'c7ja4siy'
+        },
+        roleNames: {
+            type: 'array',
+            items: {
+                type: 'string'
+            },
+            example: ['administrator', 'editor']
+        }
+    },
+    required: ['resourceType', 'resourceId', 'roleNames']
+} as const;
+
+export const MembershipsSchema = {
+    type: 'array',
+    items: {
+        '$ref': '#/components/schemas/Membership'
+    }
 } as const;
 
 export const UserSchema = {
@@ -96,28 +152,7 @@ export const UserSchema = {
             '$ref': '#/components/schemas/UserProfile'
         },
         memberships: {
-            type: 'array',
-            items: {
-                type: 'object',
-                properties: {
-                    resourceType: {
-                        type: 'string',
-                        example: 'project'
-                    },
-                    resourceId: {
-                        type: 'string',
-                        example: 'c7ja4siy'
-                    },
-                    roleNames: {
-                        type: 'array',
-                        items: {
-                            type: 'string'
-                        },
-                        example: ['administrator', 'editor']
-                    }
-                },
-                required: ['resourceType', 'resourceId', 'roleNames']
-            }
+            '$ref': '#/components/schemas/Memberships'
         }
     },
     required: ['sanityUserId', 'profile', 'memberships']
@@ -185,6 +220,49 @@ export const ResourceTypeSchema = {
     description: `Resources are entities that can be managed and accessed through the
 Access API.
 `
+} as const;
+
+export const RobotSchema = {
+    type: 'object',
+    description: 'A robot is a service account that can be used to authenticate with the API.',
+    properties: {
+        id: {
+            type: 'string',
+            description: 'The unique identifier for the robot.',
+            readOnly: true
+        },
+        label: {
+            type: 'string',
+            description: 'A human-readable label for the robot.'
+        },
+        createdAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'The creation date of the robot.',
+            readOnly: true
+        },
+        memberships: {
+            '$ref': '#/components/schemas/Memberships'
+        }
+    },
+    required: ['id', 'label', 'createdAt', 'memberships']
+} as const;
+
+export const RobotWithTokenSchema = {
+    type: 'object',
+    allOf: [
+        {
+            '$ref': '#/components/schemas/Robot'
+        }
+    ],
+    properties: {
+        token: {
+            type: 'string',
+            description: 'The secret token for the robot.',
+            readOnly: true
+        }
+    },
+    required: ['token']
 } as const;
 
 export const InviteSchema = {

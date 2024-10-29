@@ -1,17 +1,18 @@
-import { Users } from '../../generated/typescript';
-import { initApi } from './util/initApi';
+import { Users } from '../../../generated/typescript';
+import { initApi } from '../util/initApi';
 
-initApi();
+initApi("ORGANIZATION_ROBOT_TOKEN");
 
+const organizationId = process.env.ORGANIZATION_ID || '<organization-id>';
 const projectId = process.env.PROJECT_ID || '<project-id>';
 const email = process.env.EMAIL_ADDRESS || 'john.doe@example.com';
 const roleName = process.env.ROLE_NAME || 'developer';
 
-async function assignRole(projectId: string, email: string, roleName: string) {
+async function assignRole(organizationId: string, email: string, roleName: string) {
   const {data: users, error} = await Users.getUsers({
     path: {
-      resourceId: projectId,
-      resourceType: 'project',
+      resourceId: organizationId,
+      resourceType: 'organization',
     }
   });
 
@@ -34,8 +35,8 @@ async function assignRole(projectId: string, email: string, roleName: string) {
 
   const {data, error: addError} = await Users.addRoleToUser({
     path: {
-      resourceId: projectId,
-      resourceType: 'project',
+      resourceId: organizationId,
+      resourceType: 'organization',
       roleName: roleName,
       sanityUserId: user.sanityUserId,
     }
@@ -50,7 +51,7 @@ async function assignRole(projectId: string, email: string, roleName: string) {
 }
 
 if (require.main === module) {
-  assignRole(projectId, email, roleName);
+  assignRole(organizationId, email, roleName);
 }
 
 export { assignRole };

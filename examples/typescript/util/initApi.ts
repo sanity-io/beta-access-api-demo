@@ -1,15 +1,19 @@
 import dotenv from 'dotenv';
 import { client } from '../../../generated/typescript';
 
-export function initApi() {
+export function initApi(tokenEnvVar: string = "") {
   dotenv.config();
 
   client.setConfig({
-    baseUrl: 'https://api.sanity.io/',
+    baseUrl: process.env.BASE_URL || 'https://api.sanity.io/',
   });
 
+  const token = process.env[tokenEnvVar];
+
   client.interceptors.request.use((request, options) => {
-    request.headers.set('Authorization', `Bearer ${process.env.PROJECT_ROBOT_TOKEN}`);
+    if (token) {
+      request.headers.set('Authorization', `Bearer ${token}`);
+    }
 
     if (process.env.DEBUG) {
       console.log(`Options: ${JSON.stringify(options, null, 2)}`);

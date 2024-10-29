@@ -1,7 +1,7 @@
-import { Permissions } from '../../generated/typescript';
-import { initApi } from './util/initApi';
+import { Permissions } from '../../../generated/typescript';
+import { initApi } from '../util/initApi';
 
-initApi();
+initApi("PROJECT_ROBOT_TOKEN");
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
@@ -28,6 +28,11 @@ async function readPermissions(projectId: string) {
     console.log(`- ${permission.title}`);
     console.log(`  Identifier: ${permission.name}`);
     console.log(`  Description: ${permission.description}`);
+    console.log(`  ResourceId: ${permission.resourceId}`);
+    console.log(`  ResourceType: ${permission.resourceType}`);
+    if (permission.params) {
+      console.log(`  Params: ${JSON.stringify(permission.params)}`);
+    }
   }
 }
 
