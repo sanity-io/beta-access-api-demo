@@ -24,12 +24,13 @@ async function createRobot(organizationId: string, robotName: string) {
     }
   });
 
-  console.log(`Make sure to save the token to the environment variable ORGANIZATION_ROBOT_TOKEN`);
-  console.log(data);
-
   if (error) {
     console.error(error);
+    return;
   }
+
+  console.log(`Make sure to save the token to the environment variable ORGANIZATION_ROBOT_TOKEN`);
+  console.log(data);
 }
 
 createRobot(organizationId, 'organization-robot-manage-users');
