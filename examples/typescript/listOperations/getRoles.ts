@@ -1,4 +1,4 @@
-import { Roles } from '../../../generated/typescript';
+import { Roles, Role } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
 initApi("PROJECT_ROBOT_TOKEN");
@@ -6,21 +6,32 @@ initApi("PROJECT_ROBOT_TOKEN");
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function readRoles(projectId: string) {
-  const {data: roles, error} = await Roles.getRoles({
-    path: {
-      resourceId: projectId,
+  let roles: Array<Role> = [];
+  let nextCursor: string | undefined;
+
+  while (true) {
+    const {data, error} = await Roles.getRoles({
+      path: {
+        resourceId: projectId,
       resourceType: 'project',
+      },
+      query: {
+        limit: 10,
+        nextCursor,
+      },
+    });
+
+    if (error) {
+      console.error(error);
+      return;
     }
-  });
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+    roles = roles.concat(data?.data || []);
+    nextCursor = data?.nextCursor || undefined;
 
-  if (!roles) {
-    console.error("No roles found");
-    return;
+    if (nextCursor == null) {
+      break;
+    }
   }
 
   console.log("Roles");

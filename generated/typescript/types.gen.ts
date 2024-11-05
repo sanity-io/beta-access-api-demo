@@ -175,6 +175,26 @@ export type UserProfile = {
  */
 export type RequestType = 'access' | 'role';
 
+export type PaginatedResponse = {
+    data: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Cursor to get the next page of results, `null` if there are no more results.
+     */
+    nextCursor: (string) | null;
+};
+
+/**
+ * Cursor for pagination. Use the nextCursor from the previous response to get the next page.
+ */
+export type ParametercursorParam = string;
+
+/**
+ * Number of items to return per page.
+ */
+export type ParameterlimitParam = number;
+
 /**
  * The User ID
  */
@@ -241,9 +261,21 @@ export type GetPermissionsData = {
          */
         resourceType: ResourceType;
     };
+    query?: {
+        /**
+         * Number of items to return per page.
+         */
+        limit?: number;
+        /**
+         * Cursor for pagination. Use the nextCursor from the previous response to get the next page.
+         */
+        nextCursor?: string;
+    };
 };
 
-export type GetPermissionsResponse = (Array<Permission>);
+export type GetPermissionsResponse = ((PaginatedResponse & {
+    data?: Array<Permission>;
+}));
 
 export type GetPermissionsError = (unknown);
 
@@ -375,7 +407,22 @@ export type DeletePermissionResponse = (unknown);
 
 export type DeletePermissionError = (unknown);
 
-export type GetMyPermissionsResponse = (Array<Permission>);
+export type GetMyPermissionsData = {
+    query?: {
+        /**
+         * Number of items to return per page.
+         */
+        limit?: number;
+        /**
+         * Cursor for pagination. Use the nextCursor from the previous response to get the next page.
+         */
+        nextCursor?: string;
+    };
+};
+
+export type GetMyPermissionsResponse = ((PaginatedResponse & {
+    data?: Array<Permission>;
+}));
 
 export type GetMyPermissionsError = unknown;
 
@@ -390,9 +437,21 @@ export type GetUsersData = {
          */
         resourceType: ResourceType;
     };
+    query?: {
+        /**
+         * Number of items to return per page.
+         */
+        limit?: number;
+        /**
+         * Cursor for pagination. Use the nextCursor from the previous response to get the next page.
+         */
+        nextCursor?: string;
+    };
 };
 
-export type GetUsersResponse = (Array<User>);
+export type GetUsersResponse = ((PaginatedResponse & {
+    data?: Array<User>;
+}));
 
 export type GetUsersError = (unknown);
 
@@ -542,10 +601,20 @@ export type GetRolesData = {
          * Whether to include children resources in the response. Only applies to `organization` resources.
          */
         includeChildren?: boolean;
+        /**
+         * Number of items to return per page.
+         */
+        limit?: number;
+        /**
+         * Cursor for pagination. Use the nextCursor from the previous response to get the next page.
+         */
+        nextCursor?: string;
     };
 };
 
-export type GetRolesResponse = (Array<Role>);
+export type GetRolesResponse = ((PaginatedResponse & {
+    data?: Array<Role>;
+}));
 
 export type GetRolesError = unknown;
 
@@ -793,13 +862,23 @@ export type GetInvitesData = {
          */
         includeChildren?: boolean;
         /**
+         * Number of items to return per page.
+         */
+        limit?: number;
+        /**
+         * Cursor for pagination. Use the nextCursor from the previous response to get the next page.
+         */
+        nextCursor?: string;
+        /**
          * Filter invites by status.
          */
         status?: Array<InviteStatus>;
     };
 };
 
-export type GetInvitesResponse = (Array<Invite>);
+export type GetInvitesResponse = ((PaginatedResponse & {
+    data?: Array<Invite>;
+}));
 
 export type GetInvitesError = (unknown);
 
@@ -903,10 +982,20 @@ export type ListRobotsData = {
          * Whether to include children resources in the response. Only applies to `organization` resources.
          */
         includeChildren?: boolean;
+        /**
+         * Number of items to return per page.
+         */
+        limit?: number;
+        /**
+         * Cursor for pagination. Use the nextCursor from the previous response to get the next page.
+         */
+        nextCursor?: string;
     };
 };
 
-export type ListRobotsResponse = (Array<Robot>);
+export type ListRobotsResponse = ((PaginatedResponse & {
+    data?: Array<Robot>;
+}));
 
 export type ListRobotsError = (unknown);
 

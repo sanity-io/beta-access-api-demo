@@ -1,4 +1,4 @@
-import { Permissions } from '../../../generated/typescript';
+import { Permissions, Permission } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
 initApi("PROJECT_ROBOT_TOKEN");
@@ -6,16 +6,32 @@ initApi("PROJECT_ROBOT_TOKEN");
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function readPermissions(projectId: string) {
-  const {data: permissions, error} = await Permissions.getPermissions({
-    path: {
-      resourceId: projectId,
-      resourceType: 'project',
-    }
-  });
+  let permissions: Array<Permission> = [];
+  let nextCursor: string | undefined;
 
-  if (error) {
-    console.error(error);
-    return;
+  while (true) {
+    const {data, error} = await Permissions.getPermissions({
+      path: {
+        resourceId: projectId,
+        resourceType: 'project',
+      },
+      query: {
+        limit: 10,
+        nextCursor,
+      },
+    });
+
+    if (error) {
+      console.error(error);
+      break;
+    }
+
+    permissions = permissions.concat(data?.data || []);
+    nextCursor = data?.nextCursor || undefined;
+
+    if (nextCursor == null) {
+      break;
+    }
   }
 
   if (!permissions) {

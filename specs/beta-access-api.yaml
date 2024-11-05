@@ -98,6 +98,23 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    cursorParam:
+      in: query
+      name: nextCursor
+      required: false
+      schema:
+        type: string
+      description: Cursor for pagination. Use the nextCursor from the previous response to get the next page.
+    limitParam:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+      description: Number of items to return per page.
     sanityUserIdParam:
       in: path
       name: sanityUserId
@@ -524,6 +541,20 @@ components:
       enum: [access, role]
       example: access
       description: The type of request.
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+        nextCursor:
+          type: string
+          nullable: true
+          description: Cursor to get the next page of results, `null` if there are no more results.
+      required:
+        - data
+        - nextCursor
   requestBodies:
     CreateRobotRequestBody:
       required: true
@@ -652,15 +683,22 @@ paths:
       parameters:
         - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/cursorParam'
+        - $ref: '#/components/parameters/limitParam'
       responses:
         '200':
-          description: The list of permission resources for the resource
+          description: A paginated list of permission resources for the resource
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Permission'
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Permission'
         '404':
           description: Resource not found
         '401':
@@ -787,19 +825,27 @@ paths:
       operationId: getMyPermissions
       tags:
         - Permissions
+      parameters:
+        - $ref: '#/components/parameters/cursorParam'
+        - $ref: '#/components/parameters/limitParam'
       responses:
         '200':
-          description: The list of permissions for all resources the current user has access to.
+          description: A paginated list of permissions for all resources the current user has access to
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Permission'
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Permission'
+
   /vX/access/{resourceType}/{resourceId}/users:
     get:
       summary: List all users of a resource and their assigned roles.
-
       description: >
         Retrieve a list of all users of a resource along with their assigned roles. When the resourceType is `organization`, this endpoint will return users of projects owned by the organization.
         Requires permission
@@ -810,15 +856,22 @@ paths:
       parameters:
         - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'
+        - $ref: '#/components/parameters/cursorParam'
+        - $ref: '#/components/parameters/limitParam'
       responses:
         '200':
-          description: The list of resource users and their assigned roles
+          description: A paginated list of resource users and their assigned roles
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
         '404':
           description: Resource not found
         '401':
@@ -958,6 +1011,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Permission'
+
   /vX/access/{resourceType}/{resourceId}/roles:
     get:
       summary: List roles assignable to a user on this resource.
@@ -971,15 +1025,22 @@ paths:
         - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'
         - $ref: '#/components/parameters/includeChildrenParam'
+        - $ref: '#/components/parameters/cursorParam'
+        - $ref: '#/components/parameters/limitParam'
       responses:
         '200':
-          description: List roles for a resource.
+          description: A paginated list of roles for a resource
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Role'
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Role'
     post:
       summary: Create a role
       description: >
@@ -1091,6 +1152,7 @@ paths:
           description: Unauthorized
         '404':
           description: Role not found
+
   /v2024-07-01/access/{resourceType}/{resourceId}/requests:
     get:
       summary: List all request for given project/organization
@@ -1104,7 +1166,7 @@ paths:
         - $ref: '#/components/parameters/includeChildrenParam'
       responses:
         '200':
-          description: A list of Requests
+          description: A list of resource requests
           content:
             application/json:
               schema:
@@ -1275,15 +1337,22 @@ paths:
         - $ref: '#/components/parameters/resourceIdParam'
         - $ref: '#/components/parameters/inviteStatus'
         - $ref: '#/components/parameters/includeChildrenParam'
+        - $ref: '#/components/parameters/cursorParam'
+        - $ref: '#/components/parameters/limitParam'
       responses:
         '200':
-          description: Invite list.
+          description: A paginated list of invites
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Invite'
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Invite'
         '401':
           $ref: '#/components/responses/unauthorized'
         '403':
@@ -1337,7 +1406,6 @@ paths:
           $ref: '#/components/responses/forbidden'
         '404':
           $ref: '#/components/responses/resourceNotFound'
-
   /vX/access/{resourceType}/{resourceId}/invites/{inviteId}:
     delete:
       tags: [Invites]
@@ -1369,7 +1437,6 @@ paths:
           $ref: '#/components/responses/forbidden'
         '404':
           description: Resource or invite not found.
-
   /vX/access/{resourceType}/{resourceId}/invites/token/{inviteToken}:
     get:
       tags: [Invites]
@@ -1394,7 +1461,6 @@ paths:
                 $ref: '#/components/schemas/Invite'
         '404':
           description: Resource or invite not found.
-
   /vX/access/{resourceType}/{resourceId}/invites/token/{inviteToken}/accept:
     post:
       tags: [Invites]
@@ -1470,15 +1536,22 @@ paths:
         - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'
         - $ref: '#/components/parameters/includeChildrenParam'
+        - $ref: '#/components/parameters/cursorParam'
+        - $ref: '#/components/parameters/limitParam'
       responses:
         '200':
-          description: List of robots.
+          description: A paginated list of robots
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Robot'
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Robot'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
@@ -1529,7 +1602,6 @@ paths:
           $ref: '#/components/responses/unauthorized'
         '404':
           $ref: '#/components/responses/resourceNotFound'
-
   /vX/access/{resourceType}/{resourceId}/robots/{robotId}:
     get:
       tags: [Robots]

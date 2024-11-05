@@ -1,4 +1,4 @@
-import { Users } from '../../../generated/typescript';
+import { Users, User } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
 initApi("PROJECT_ROBOT_TOKEN");
@@ -6,21 +6,32 @@ initApi("PROJECT_ROBOT_TOKEN");
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function readUsers(projectId: string) {
-  const {data: users, error} = await Users.getUsers({
-    path: {
-      resourceId: projectId,
+  let users: Array<User> = [];
+  let nextCursor: string | undefined;
+
+  while (true) {
+    const {data, error} = await Users.getUsers({
+      path: {
+        resourceId: projectId,
       resourceType: 'project',
-    }
-  });
+      },
+      query: {
+        limit: 10,
+        nextCursor,
+      },
+    });
 
-  if (error) {
+    if (error) {
     console.error(error);
-    return;
-  }
+      return;
+    }
 
-  if (!users) {
-    console.error("No users found");
-    return;
+    users = users.concat(data?.data || []);
+    nextCursor = data?.nextCursor || undefined;
+
+    if (nextCursor == null) {
+      break;
+    }
   }
 
   console.log("Users");

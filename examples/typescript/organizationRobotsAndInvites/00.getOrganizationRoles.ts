@@ -8,18 +8,35 @@ initApi("USER_TOKEN");
 const organizationId = process.env.ORGANIZATION_ID || '<organization-id>';
 
 async function getOrganizationRoles(organizationId: string) {
-  const {data, error} = await Roles.getRoles({
-    path: {
-      resourceId: organizationId,
-      resourceType: 'organization',
-    },
-  });
+  let nextCursor: string | undefined;
+  while (true) {
+    try {
+      const { data, error } = await Roles.getRoles({
+        path: {
+          resourceId: organizationId,
+          resourceType: 'organization',
+        },
+        query: {
+          limit: 10,
+          nextCursor,
+        },
+      });
 
-  console.log(JSON.stringify(data, null, 2));
+      if (error) {
+        throw error;
+      }
 
-  if (error) {
-    console.error(error);
+      console.log(`data: ${JSON.stringify(data?.data, null, 2)}`);
+
+      if (data?.nextCursor == null) {
+        break;
+      }
+
+      nextCursor = data.nextCursor;
+    } catch (error) {
+      console.error(error);
+      break;
+    }
   }
 }
-
 getOrganizationRoles(organizationId);
