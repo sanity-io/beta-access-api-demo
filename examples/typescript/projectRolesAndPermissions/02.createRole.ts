@@ -1,15 +1,15 @@
 import { initApi } from '../util/initApi';
 import { Roles } from '../../../generated/typescript';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function createRole(projectId: string, roleName: string) {
-  const {data: role, error} = await Roles.createRole({
+  const { data: role, error } = await Roles.createRole({
     body: {
       name: roleName,
-      title: "Member",
+      title: 'Member',
       description: 'Read project members and roles',
       appliesToUsers: true,
       appliesToRobots: false,
@@ -28,7 +28,7 @@ async function createRole(projectId: string, roleName: string) {
     path: {
       resourceId: projectId,
       resourceType: 'project',
-    }
+    },
   });
 
   if (error) {
@@ -44,4 +44,3 @@ if (require.main === module) {
 }
 
 export { createRole };
-

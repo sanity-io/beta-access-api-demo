@@ -1,12 +1,12 @@
 import { Requests } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function readRequests(projectId: string) {
-  const {data: requests, error} = await Requests.getRequests({
+  const { data: requests, error } = await Requests.getRequests({
     path: {
       resourceId: projectId,
       resourceType: 'project',

@@ -1,12 +1,12 @@
 import { Invites, Invite } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function readInvites(projectId: string) {
-  let invites: Array<Invite> = []
+  let invites: Array<Invite> = [];
   let nextCursor: string | undefined;
 
   while (true) {
@@ -16,9 +16,9 @@ async function readInvites(projectId: string) {
         resourceType: 'project',
       },
       query: {
-          limit: 10,
-          nextCursor,
-        },
+        limit: 10,
+        nextCursor,
+      },
     });
 
     if (error) {
@@ -34,10 +34,10 @@ async function readInvites(projectId: string) {
     }
   }
 
-    for (const invite of invites) {
-      console.log(`- ${invite.email}`);
-      console.log(`  Status: ${invite.status}`);
-      console.log(`  Role: ${invite.role}`);
+  for (const invite of invites) {
+    console.log(`- ${invite.email}`);
+    console.log(`  Status: ${invite.status}`);
+    console.log(`  Role: ${invite.role}`);
   }
 }
 
