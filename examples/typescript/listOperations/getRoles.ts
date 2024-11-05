@@ -1,7 +1,7 @@
 import { Roles, Role } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
@@ -10,10 +10,10 @@ async function readRoles(projectId: string) {
   let nextCursor: string | undefined;
 
   while (true) {
-    const {data, error} = await Roles.getRoles({
+    const { data, error } = await Roles.getRoles({
       path: {
         resourceId: projectId,
-      resourceType: 'project',
+        resourceType: 'project',
       },
       query: {
         limit: 10,
@@ -34,7 +34,7 @@ async function readRoles(projectId: string) {
     }
   }
 
-  console.log("Roles");
+  console.log('Roles');
   for (const role of roles) {
     console.log(`- ${role.title} (identifier: ${role.name}) has permissions:`);
     for (const permission of role.permissions || []) {

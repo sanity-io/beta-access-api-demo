@@ -3,12 +3,12 @@ import { initApi } from '../util/initApi';
 
 // Requires a user session with organization admin permissions
 // Make sure to pass in a user session and not a robot session
-initApi("USER_TOKEN");
+initApi('USER_TOKEN');
 
 const organizationId = process.env.ORGANIZATION_ID || '<organization-id>';
 
 async function createOrganizationRobotRole(organizationId: string, robotRoleName: string) {
-  const {data, error} = await Roles.createRole({
+  const { data, error } = await Roles.createRole({
     path: {
       resourceId: organizationId,
       resourceType: 'organization',
@@ -44,7 +44,6 @@ async function createOrganizationRobotRole(organizationId: string, robotRoleName
         {
           name: 'sanity.organization.members.invite',
         },
-
       ],
     },
   });

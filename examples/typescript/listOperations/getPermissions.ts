@@ -1,7 +1,7 @@
 import { Permissions, Permission } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
@@ -10,7 +10,7 @@ async function readPermissions(projectId: string) {
   let nextCursor: string | undefined;
 
   while (true) {
-    const {data, error} = await Permissions.getPermissions({
+    const { data, error } = await Permissions.getPermissions({
       path: {
         resourceId: projectId,
         resourceType: 'project',
@@ -35,11 +35,11 @@ async function readPermissions(projectId: string) {
   }
 
   if (!permissions) {
-    console.error("No permissions found");
+    console.error('No permissions found');
     return;
   }
 
-  console.log("Permissions");
+  console.log('Permissions');
   for (const permission of permissions) {
     console.log(`- ${permission.title}`);
     console.log(`  Identifier: ${permission.name}`);

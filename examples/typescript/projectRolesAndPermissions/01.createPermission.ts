@@ -1,12 +1,12 @@
 import { Permissions } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function createPermission(projectId: string) {
-  const {data: permissions, error} = await Permissions.createPermission({
+  const { data: permissions, error } = await Permissions.createPermission({
     path: {
       resourceId: projectId,
       resourceType: 'project',
@@ -17,9 +17,9 @@ async function createPermission(projectId: string) {
       name: 'my-test-permission',
       type: 'sanity.document.filter.mode',
       config: {
-        filter: `_type == "documentType"`
-      }
-    }
+        filter: `_type == "documentType"`,
+      },
+    },
   });
 
   if (error) {

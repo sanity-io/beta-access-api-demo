@@ -1,7 +1,7 @@
 import { Users, User } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
@@ -10,10 +10,10 @@ async function readUsers(projectId: string) {
   let nextCursor: string | undefined;
 
   while (true) {
-    const {data, error} = await Users.getUsers({
+    const { data, error } = await Users.getUsers({
       path: {
         resourceId: projectId,
-      resourceType: 'project',
+        resourceType: 'project',
       },
       query: {
         limit: 10,
@@ -22,7 +22,7 @@ async function readUsers(projectId: string) {
     });
 
     if (error) {
-    console.error(error);
+      console.error(error);
       return;
     }
 
@@ -34,9 +34,11 @@ async function readUsers(projectId: string) {
     }
   }
 
-  console.log("Users");
+  console.log('Users');
   for (const user of users) {
-    console.log(`- ${user.profile.displayName} (${user.profile.email} provided by ${user.profile.provider}) has roles:`);
+    console.log(
+      `- ${user.profile.displayName} (${user.profile.email} provided by ${user.profile.provider}) has roles:`
+    );
     for (const membership of user.memberships) {
       console.log(`  - ${membership.resourceId} (${membership.resourceType}) has roles:`);
       for (const roleName of membership.roleNames) {
