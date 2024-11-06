@@ -6,7 +6,7 @@ initApi('PROJECT_ROBOT_TOKEN');
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function createPermission(projectId: string) {
-  const { data: permissions, error } = await Permissions.createPermission({
+  const { data: newPermission, error } = await Permissions.createPermission({
     path: {
       resourceId: projectId,
       resourceType: 'project',
@@ -27,7 +27,22 @@ async function createPermission(projectId: string) {
     return;
   }
 
-  console.log(`Permission created, identifier: ${permissions?.name}`);
+  console.log(`Permission created: ${JSON.stringify(newPermission, null, 2)}`);
+
+  const { data: permission, error: getError } = await Permissions.getPermission({
+    path: {
+      resourceId: projectId,
+      resourceType: 'project',
+      permissionName: newPermission?.name || '',
+    },
+  });
+
+  if (getError) {
+    console.error(getError);
+    return;
+  }
+
+  console.log(`Permission retrieved: ${JSON.stringify(permission, null, 2)}`);
 }
 
 if (require.main === module) {
