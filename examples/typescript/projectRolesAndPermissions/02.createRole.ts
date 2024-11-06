@@ -24,6 +24,7 @@ async function createRole(projectId: string, roleName: string) {
           name: 'my-test-permission.mode',
           params: {
             mode: 'read',
+            dataset: 'production',
           },
         },
       ],
