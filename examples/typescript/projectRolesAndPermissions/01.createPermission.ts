@@ -33,7 +33,7 @@ async function createPermission(projectId: string) {
     path: {
       resourceId: projectId,
       resourceType: 'project',
-      permissionName: newPermission?.name || '',
+      permissionName: newPermission?.name + '.mode' || '',
     },
   });
 

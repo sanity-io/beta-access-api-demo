@@ -6,7 +6,7 @@ initApi('PROJECT_ROBOT_TOKEN');
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function createRole(projectId: string, roleName: string) {
-  const { data: role, error } = await Roles.createRole({
+  const { data: newRole, error } = await Roles.createRole({
     body: {
       name: roleName,
       title: 'Member',
@@ -15,13 +15,16 @@ async function createRole(projectId: string, roleName: string) {
       appliesToRobots: false,
       permissions: [
         {
-          name: 'sanity.projects.members.read',
+          name: 'sanity.project.members.read',
         },
         {
-          name: 'sanity.projects.roles.read',
+          name: 'sanity.project.roles.read',
         },
         {
           name: 'my-test-permission.mode',
+          params: {
+            mode: 'read',
+          },
         },
       ],
     },
@@ -36,7 +39,22 @@ async function createRole(projectId: string, roleName: string) {
     return;
   }
 
-  console.log(`Role ${role?.name} created successfully`);
+  console.log(`Role ${newRole?.name} created successfully`);
+
+  const { data: role, error: getError } = await Roles.getRole({
+    path: {
+      resourceId: projectId,
+      resourceType: 'project',
+      roleName: newRole?.name || '',
+    },
+  });
+
+  if (getError) {
+    console.error(getError);
+    return;
+  }
+
+  console.log(`Role retrieved: ${JSON.stringify(role, null, 2)}`);
 }
 
 if (require.main === module) {
