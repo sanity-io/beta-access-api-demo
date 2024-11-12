@@ -1,7 +1,7 @@
 import { Permissions } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 

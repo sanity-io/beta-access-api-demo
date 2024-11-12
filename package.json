@@ -5,7 +5,9 @@
   "main": "src/index.ts",
   "scripts": {
     "generate:sdk:typescript": "tsx ./scripts/generateTypescriptLibrary.ts",
-    "generate:docs:html": "redocly build-docs ./specs/beta-access-api.yaml -o ./generated/docs/beta-access-api.html --title beta-access-api"
+    "generate:docs:html": "redocly build-docs ./specs/beta-access-api.yaml -o ./generated/docs/beta-access-api.html --title beta-access-api",
+    "format": "prettier --write \"{examples,scripts}/**/*.{ts,tsx,js,jsx,json}\"",
+    "format:check": "prettier --check \"{examples,scripts}/**/*.{ts,tsx,js,jsx,json}\""
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +16,7 @@
     "@hey-api/openapi-ts": "^0.53.5",
     "@redocly/cli": "^1.25.4",
     "@types/node": "^22.7.4",
+    "prettier": "3.3.3",
     "tsx": "^4.19.1"
   },
   "dependencies": {

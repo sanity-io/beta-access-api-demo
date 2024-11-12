@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { client } from '../../../generated/typescript';
 
-export function initApi(tokenEnvVar: string = "") {
+export function initApi(tokenEnvVar: string = '') {
   dotenv.config();
 
   client.setConfig({

@@ -380,3 +380,21 @@ export const RequestTypeSchema = {
     example: 'access',
     description: 'The type of request.'
 } as const;
+
+export const PaginatedResponseSchema = {
+    type: 'object',
+    properties: {
+        data: {
+            type: 'array',
+            items: {
+                type: 'object'
+            }
+        },
+        nextCursor: {
+            type: 'string',
+            nullable: true,
+            description: 'Cursor to get the next page of results, `null` if there are no more results.'
+        }
+    },
+    required: ['data', 'nextCursor']
+} as const;

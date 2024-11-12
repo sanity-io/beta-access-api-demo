@@ -1,24 +1,40 @@
-import { Invites } from '../../../generated/typescript';
+import { Invites, Invite } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function readInvites(projectId: string) {
-  const {data: invites, error} = await Invites.getInvites({
-    path: {
-      resourceId: projectId,
-      resourceType: 'project',
-    },
-  });
+  let invites: Array<Invite> = [];
+  let nextCursor: string | undefined;
 
-  if (error) {
-    console.error(error);
-    return;
+  while (true) {
+    const { data, error } = await Invites.getInvites({
+      path: {
+        resourceId: projectId,
+        resourceType: 'project',
+      },
+      query: {
+        limit: 10,
+        nextCursor,
+      },
+    });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    invites = invites.concat(data?.data || []);
+    nextCursor = data?.nextCursor || undefined;
+
+    if (nextCursor == null) {
+      break;
+    }
   }
 
-  for (const invite of invites || []) {
+  for (const invite of invites) {
     console.log(`- ${invite.email}`);
     console.log(`  Status: ${invite.status}`);
     console.log(`  Role: ${invite.role}`);

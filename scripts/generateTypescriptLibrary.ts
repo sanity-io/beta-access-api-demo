@@ -10,8 +10,8 @@ async function generateClient() {
     output: './generated/typescript',
     services: {
       asClass: true,
-      name: '{{name}}'
-    }
+      name: '{{name}}',
+    },
   });
 }
 

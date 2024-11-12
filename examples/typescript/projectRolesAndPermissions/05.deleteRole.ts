@@ -1,17 +1,17 @@
 import { initApi } from '../util/initApi';
 import { Roles } from '../../../generated/typescript';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function deleteRole(projectId: string, roleName: string) {
-  const {data: role, error} = await Roles.deleteRole({
+  const { data: role, error } = await Roles.deleteRole({
     path: {
       resourceId: projectId,
       resourceType: 'project',
       roleName: roleName,
-    }
+    },
   });
 
   if (error) {
@@ -27,4 +27,3 @@ if (require.main === module) {
 }
 
 export { deleteRole };
-

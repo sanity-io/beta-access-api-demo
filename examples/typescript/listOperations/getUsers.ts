@@ -1,31 +1,44 @@
-import { Users } from '../../../generated/typescript';
+import { Users, User } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi("PROJECT_ROBOT_TOKEN");
+initApi('PROJECT_ROBOT_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function readUsers(projectId: string) {
-  const {data: users, error} = await Users.getUsers({
-    path: {
-      resourceId: projectId,
-      resourceType: 'project',
+  let users: Array<User> = [];
+  let nextCursor: string | undefined;
+
+  while (true) {
+    const { data, error } = await Users.getUsers({
+      path: {
+        resourceId: projectId,
+        resourceType: 'project',
+      },
+      query: {
+        limit: 10,
+        nextCursor,
+      },
+    });
+
+    if (error) {
+      console.error(error);
+      return;
     }
-  });
 
-  if (error) {
-    console.error(error);
-    return;
+    users = users.concat(data?.data || []);
+    nextCursor = data?.nextCursor || undefined;
+
+    if (nextCursor == null) {
+      break;
+    }
   }
 
-  if (!users) {
-    console.error("No users found");
-    return;
-  }
-
-  console.log("Users");
+  console.log('Users');
   for (const user of users) {
-    console.log(`- ${user.profile.displayName} (${user.profile.email} provided by ${user.profile.provider}) has roles:`);
+    console.log(
+      `- ${user.profile.displayName} (${user.profile.email} provided by ${user.profile.provider}) has roles:`
+    );
     for (const membership of user.memberships) {
       console.log(`  - ${membership.resourceId} (${membership.resourceType}) has roles:`);
       for (const roleName of membership.roleNames) {
