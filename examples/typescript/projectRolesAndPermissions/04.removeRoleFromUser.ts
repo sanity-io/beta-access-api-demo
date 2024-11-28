@@ -1,4 +1,4 @@
-import { Users } from '../../../generated/typescript';
+import { PaginatedResponse, User, Users } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
 initApi('PROJECT_ROBOT_TOKEN');
@@ -8,16 +8,36 @@ const email = process.env.EMAIL_ADDRESS || 'john.doe@example.com';
 const roleName = process.env.ROLE_NAME || 'my-test-role';
 
 async function assignRole(projectId: string, email: string, roleName: string) {
-  const { data: users, error } = await Users.getUsers({
-    path: {
-      resourceId: projectId,
+  let users: Array<User> = [];
+  let nextCursor: string | undefined;
+
+  while (true) {
+    const { data, error } = await Users.getUsers({
+      path: {
+        resourceId: projectId,
       resourceType: 'project',
     },
-  });
+    query: {
+        limit: 1,
+        nextCursor,
+      },
+    });
 
-  if (error) {
-    console.error(error);
-    return;
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    const paginatedUsers = data as PaginatedResponse & {
+      data?: Array<User>;
+    }; 
+
+    users = users.concat(paginatedUsers.data || []);
+    nextCursor = paginatedUsers.nextCursor || undefined;
+
+    if (nextCursor == null) {
+      break;
+    }
   }
 
   if (!users) {

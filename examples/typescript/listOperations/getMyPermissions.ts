@@ -1,39 +1,24 @@
-import { Permissions, Permission } from '../../../generated/typescript';
+import { Permissions, Permission, PaginatedResponse } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
-initApi('PROJECT_ROBOT_TOKEN');
+initApi('USER_TOKEN');
 
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function readMyPermissions(projectId: string) {
-  let permissions: Array<Permission> = [];
-  let nextCursor: string | undefined;
+  const { data, error } = await Permissions.getMyPermissions({
+    path: {
+      resourceId: projectId,
+      resourceType: 'project',
+    },
+  });
 
-  while (true) {
-    const { data, error } = await Permissions.getMyPermissions({
-      path: {
-        resourceId: projectId,
-        resourceType: 'project',
-      },
-      query: {
-        limit: 10,
-        nextCursor,
-      },
-    });
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    permissions = permissions.concat(data?.data || []);
-    nextCursor = data?.nextCursor || undefined;
-
-    if (nextCursor == null) {
-      break;
-    }
+  if (error) {
+    console.error(error);
+    return;
   }
 
+  const permissions = data as Array<Permission>;
   for (const permission of permissions) {
     console.log(`- ${permission.title}`);
     console.log(`  Identifier: ${permission.name}`);

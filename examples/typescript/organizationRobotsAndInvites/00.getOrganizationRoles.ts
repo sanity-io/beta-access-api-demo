@@ -1,4 +1,4 @@
-import { Roles } from '../../../generated/typescript';
+import { PaginatedResponse, Role, Roles } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
 // Requires a user session with organization admin permissions
@@ -9,6 +9,7 @@ const organizationId = process.env.ORGANIZATION_ID || '<organization-id>';
 
 async function getOrganizationRoles(organizationId: string) {
   let nextCursor: string | undefined;
+  let roles: Array<Role> = [];
   while (true) {
     try {
       const { data, error } = await Roles.getRoles({
@@ -19,6 +20,7 @@ async function getOrganizationRoles(organizationId: string) {
         query: {
           limit: 10,
           nextCursor,
+          includeChildren: true,
         },
       });
 
@@ -26,17 +28,24 @@ async function getOrganizationRoles(organizationId: string) {
         throw error;
       }
 
-      console.log(`data: ${JSON.stringify(data?.data, null, 2)}`);
+      const paginatedData = data as PaginatedResponse & {
+        data?: Array<Role>;
+      };
 
-      if (data?.nextCursor == null) {
+      roles = roles.concat(paginatedData.data || []);
+
+      if (paginatedData?.nextCursor == null) {
         break;
       }
 
-      nextCursor = data.nextCursor;
+      nextCursor = paginatedData.nextCursor;
     } catch (error) {
       console.error(error);
       break;
     }
   }
+
+  console.log('Roles');
+  console.log(JSON.stringify(roles, null, 2));
 }
 getOrganizationRoles(organizationId);

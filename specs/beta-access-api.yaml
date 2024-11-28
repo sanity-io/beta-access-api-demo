@@ -65,7 +65,7 @@ info:
     <ul>
       <li><code>Access</code> is now the root path for managing access-based resources. Previously it was organization and project but these are now nested under the access root.</li>
       <li>Internal IDs are no longer exposed for permissions or roles. The <code>name</code> property is now used as the unique identifier for permissions and roles.</li>
-      <li><code>Permissions</code> now represent <code>grants</code>, <code>resources</code> and <code>permissionResourceSchema</code> which are now legacy terms.</li>
+      <li><code>Permissions</code> now represent <code>grants</code>, <code>resources</code> and <code>permissionTypeSchema</code> which are now legacy terms.</li>
       <li>The API /organization/:organizationId/users returns users for all resources owned by the organization. Previously, a client would have to make a request for each resource (e.g. project) individually.</li>
       <li><code>users</code> replaces the term <code>ACL</code>. Users are to represent individuals assigned roles within the organization.</li>
       <li>The pre-defined roles can be completely removed from a resource. Previously, default roles could not be removed from a resource. E.g. a project required at least one project administrator, even if there were custom roles that would cover the same use case.</li>
@@ -212,47 +212,418 @@ components:
     unauthorized:
       description: Session is not authenticated.
   schemas:
+    PermissionType:
+      type: string
+      enum:
+        [
+          sanity.document.filter,
+          sanity.document.filter.mode,
+          sanity.organization,
+          sanity.organization.legal,
+          sanity.organization.members,
+          sanity.organization.projects,
+          sanity.organization.roles,
+          sanity.organization.sso,
+          sanity.organization.tokens,
+          sanity.project,
+          sanity.project.cors,
+          sanity.project.datasets,
+          sanity.project.graphql,
+          sanity.project.members,
+          sanity.project.roles,
+          sanity.project.tags,
+          sanity.project.tokens,
+          sanity.project.usage,
+          sanity.project.webhooks,
+        ]
+      description: The resource for the permission.
+      example: 'sanity.document.filter.mode'
+    PermissionAction:
+      oneOf:
+        - $ref: '#/components/schemas/sanity.document.filter.name'
+        - $ref: '#/components/schemas/sanity.document.filter.mode.name'
+        - $ref: '#/components/schemas/sanity.organization.name'
+        - $ref: '#/components/schemas/sanity.organization.legal.name'
+        - $ref: '#/components/schemas/sanity.organization.members.name'
+        - $ref: '#/components/schemas/sanity.organization.projects.name'
+        - $ref: '#/components/schemas/sanity.organization.roles.name'
+        - $ref: '#/components/schemas/sanity.organization.sso.name'
+        - $ref: '#/components/schemas/sanity.organization.tokens.name'
+        - $ref: '#/components/schemas/sanity.project.name'
+        - $ref: '#/components/schemas/sanity.project.cors.name'
+        - $ref: '#/components/schemas/sanity.project.datasets.name'
+        - $ref: '#/components/schemas/sanity.project.graphql.name'
+        - $ref: '#/components/schemas/sanity.project.members.name'
+        - $ref: '#/components/schemas/sanity.project.roles.name'
+        - $ref: '#/components/schemas/sanity.project.tags.name'
+        - $ref: '#/components/schemas/sanity.project.tokens.name'
+        - $ref: '#/components/schemas/sanity.project.usage.name'
+        - $ref: '#/components/schemas/sanity.project.webhooks.name'
+    PermissionActions:
+      oneOf:
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.document.filter'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.document.filter.mode'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.organization'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.organization.legal'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.organization.members'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.organization.projects'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.organization.roles'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.organization.sso'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.organization.tokens'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project.cors'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project.datasets'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project.graphql'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project.members'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project.roles'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project.tags'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project.tokens'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project.usage'
+        - type: array
+          items:
+            $ref: '#/components/schemas/sanity.project.webhooks'
+      description: The actions allowed by the permission for this role.
+      example: ['mode']
+    sanity.document.filter:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.document.filter.name'
+        title:
+          type: string
+          example: 'Create'
+        description:
+          type: string
+          example: 'Create a new document'
+    sanity.document.filter.name:
+      type: string
+      enum: ['create', 'read', 'update', 'manage', 'history', 'editHistory']
+
+    sanity.document.filter.mode:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.document.filter.mode.name'
+        title:
+          type: string
+          example: 'Mode'
+        description:
+          type: string
+          example: 'Mode of the document filter'
+    sanity.document.filter.mode.name:
+      type: string
+      enum: ['mode']
+
+    sanity.organization.members:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.organization.members.name'
+        title:
+          type: string
+          example: 'Organization Members'
+        description:
+          type: string
+          example: 'Manage organization members'
+    sanity.organization.members.name:
+      type: string
+      enum: ['invite', 'read', 'update', 'delete']
+
+    sanity.project.tokens:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.tokens.name'
+        title:
+          type: string
+          example: 'Project Tokens'
+        description:
+          type: string
+          example: 'Manage project tokens'
+    sanity.project.tokens.name:
+      type: string
+      enum: ['read', 'create', 'delete']
+
+    sanity.project.datasets:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.datasets.name'
+        title:
+          type: string
+          example: 'Project Datasets'
+        description:
+          type: string
+          example: 'Manage project datasets'
+    sanity.project.datasets.name:
+      type: string
+      enum: ['read', 'create', 'update', 'delete']
+
+    sanity.project.usage:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.usage.name'
+        title:
+          type: string
+          example: 'Project Usage'
+        description:
+          type: string
+          example: 'Read project usage'
+    sanity.project.usage.name:
+      type: string
+      enum: ['read']
+
+    sanity.organization.legal:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.organization.legal.name'
+        title:
+          type: string
+          example: 'Organization Legal'
+        description:
+          type: string
+          example: 'Manage organization legal documents'
+    sanity.organization.legal.name:
+      type: string
+      enum: ['read', 'update']
+
+    sanity.organization.sso:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.organization.sso.name'
+        title:
+          type: string
+          example: 'Organization SSO'
+        description:
+          type: string
+          example: 'Manage organization SSO settings'
+    sanity.organization.sso.name:
+      type: string
+      enum: ['saml']
+
+    sanity.project.graphql:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.graphql.name'
+        title:
+          type: string
+          example: 'Project GraphQL'
+        description:
+          type: string
+          example: 'Manage project GraphQL settings'
+    sanity.project.graphql.name:
+      type: string
+      enum: ['manage']
+
+    sanity.project:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.name'
+        title:
+          type: string
+          example: 'Project'
+        description:
+          type: string
+          example: 'Manage project settings'
+    sanity.project.name:
+      type: string
+      enum: ['read', 'update', 'delete', 'createSession', 'deployStudio']
+
+    sanity.project.cors:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.cors.name'
+        title:
+          type: string
+          example: 'Project CORS'
+        description:
+          type: string
+          example: 'Manage project CORS settings'
+    sanity.project.cors.name:
+      type: string
+      enum: ['read', 'create', 'delete']
+
+    sanity.project.webhooks:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.webhooks.name'
+        title:
+          type: string
+          example: 'Project Webhooks'
+        description:
+          type: string
+          example: 'Manage project webhooks'
+    sanity.project.webhooks.name:
+      type: string
+      enum: ['read', 'create', 'delete', 'update']
+
+    sanity.project.roles:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.roles.name'
+        title:
+          type: string
+          example: 'Project Roles'
+        description:
+          type: string
+          example: 'Manage project roles'
+    sanity.project.roles.name:
+      type: string
+      enum: ['create', 'read', 'update', 'delete']
+
+    sanity.organization.tokens:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.organization.tokens.name'
+        title:
+          type: string
+          example: 'Organization Tokens'
+        description:
+          type: string
+          example: 'Manage organization tokens'
+    sanity.organization.tokens.name:
+      type: string
+      enum: ['read', 'create', 'delete']
+
+    sanity.organization:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.organization.name'
+        title:
+          type: string
+          example: 'Organization'
+        description:
+          type: string
+          example: 'Manage organization settings'
+    sanity.organization.name:
+      type: string
+      enum: ['read', 'update', 'delete', 'billing']
+
+    sanity.project.members:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.members.name'
+        title:
+          type: string
+          example: 'Project Members'
+        description:
+          type: string
+          example: 'Manage project members'
+    sanity.project.members.name:
+      type: string
+      enum: ['invite', 'read', 'update', 'delete']
+
+    sanity.organization.projects:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.organization.projects.name'
+        title:
+          type: string
+          example: 'Organization Projects'
+        description:
+          type: string
+          example: 'Manage organization projects'
+    sanity.organization.projects.name:
+      type: string
+      enum: ['read', 'attach', 'detach']
+
+    sanity.organization.roles:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.organization.roles.name'
+        title:
+          type: string
+          example: 'Organization Roles'
+        description:
+          type: string
+          example: 'Manage organization roles'
+    sanity.organization.roles.name:
+      type: string
+      enum: ['create', 'read', 'update', 'delete']
+
+    sanity.project.tags:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/sanity.project.tags.name'
+        title:
+          type: string
+          example: 'Project Tags'
+        description:
+          type: string
+          example: 'Manage project tags'
+    sanity.project.tags.name:
+      type: string
+      enum: ['read', 'create', 'update', 'delete']
     Permission:
       title: Permission
       type: object
       properties:
         type:
-          type: string
-          enum:
-            [
-              sanity.document.filter,
-              sanity.document.filter.mode,
-              sanity.organization,
-              sanity.organization.legal,
-              sanity.organization.members,
-              sanity.organization.projects,
-              sanity.organization.roles,
-              sanity.organization.sso,
-              sanity.project,
-              sanity.project.cors,
-              sanity.project.datasets,
-              sanity.project.graphql,
-              sanity.project.members,
-              sanity.project.roles,
-              sanity.project.tags,
-              sanity.project.tokens,
-              sanity.project.usage,
-              sanity.project.webhooks,
-            ]
-          description: The type of permission.
-          example: 'sanity.project.members'
+          $ref: '#/components/schemas/PermissionType'
+        actions:
+          $ref: '#/components/schemas/PermissionActions'
         name:
           type: string
           description: The name of the permission. This is the unique identifier for the resource.
-          example: 'sanity.project.members.read'
+          example: 'legal-documents'
         title:
           type: string
           description: The human-readable title of the permission
-          example: 'Read Project users'
+          example: 'Permission for "Legal" Folder'
         description:
           type: string
-          description: The human-readable description of the permission
-          example: 'Read access to project users'
+          description: The description of the permission.
+          example: 'Permission for "Legal" Folder'
         resourceType:
           type: string
           description: The resource that the permission applies to.
@@ -308,15 +679,18 @@ components:
           items:
             type: object
             properties:
+              type:
+                $ref: '#/components/schemas/PermissionType'
+              action:
+                $ref: '#/components/schemas/PermissionAction'
               name:
                 type: string
-                example: 'sanity.document.filter.mode'
+                description: The name of the permission.
+                example: 'legal-documents'
               params:
                 type: object
                 description: The parameters for the permission. This is a key-value map of the permission's configuration.
                 example: {dataset: 'development'}
-            required:
-              - name
       required:
         - name
         - title
@@ -619,14 +993,14 @@ components:
                   properties:
                     name:
                       type: string
-                      description: The name of the permission
-                      example: 'sanity.document.filter.mode'
+                      description: The name of the permission.
+                      example: 'legal-documents'
+                    action:
+                      $ref: '#/components/schemas/PermissionAction'
                     params:
                       type: object
                       description: The parameters for the permission. This is a key-value map of the permission's configuration.
                       example: {dataset: 'development'}
-                  required:
-                    - name
             required:
               - title
               - name
@@ -642,13 +1016,11 @@ components:
             type: object
             properties:
               type:
-                type: string
-                description: The type of permission.
-                example: 'sanity.document.filter'
+                $ref: '#/components/schemas/PermissionType'
               name:
                 type: string
-                description: The name of the permission resource. This is a unique identifier for the permission but can be changed.
-                example: 'custom-document-filter'
+                description: The name of the permission resource. A unique identifier for a permission.
+                example: 'legal-documents'
               title:
                 type: string
                 description: A human-readable title of the permission resource. This is used for display purposes.
@@ -691,14 +1063,18 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Permission'
+                anyOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Permission'
+                  - allOf:
+                      - $ref: '#/components/schemas/PaginatedResponse'
+                      - type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Permission'
         '404':
           description: Resource not found
         '401':
@@ -834,14 +1210,18 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Permission'
+                anyOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Permission'
+                  - allOf:
+                      - $ref: '#/components/schemas/PaginatedResponse'
+                      - type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Permission'
 
   /vX/access/{resourceType}/{resourceId}/users:
     get:
@@ -864,23 +1244,35 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/User'
+                anyOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  - allOf:
+                      - $ref: '#/components/schemas/PaginatedResponse'
+                      - type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/User'
+                          totalCount:
+                            type: integer
+                            description: Total number of users available
+                            example: 1
+                        required:
+                          - totalCount
         '404':
           description: Resource not found
         '401':
           description: Unauthorized
         '400':
           description: Bad request
-  /vX/access/{resourceType}/{resourceId}/users/roles/default:
+  /vX/access/organization/{resourceId}/users/roles/default:
     put:
       summary: Apply organization default role to all users.
+      tags:
+        - Users
       description: >
         Add default role to all resource users.
         Limited to Organization.
@@ -888,7 +1280,6 @@ paths:
           - `sanity.organization.members.update`
       operationId: addDefaultRoleToUsers
       parameters:
-        - $ref: '#/components/parameters/resourceTypeParam'
         - $ref: '#/components/parameters/resourceIdParam'
       responses:
         '201':
@@ -1033,14 +1424,18 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Role'
+                anyOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Role'
+                  - allOf:
+                      - $ref: '#/components/schemas/PaginatedResponse'
+                      - type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Role'
     post:
       summary: Create a role
       description: >
@@ -1345,14 +1740,18 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Invite'
+                anyOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Invite'
+                  - allOf:
+                      - $ref: '#/components/schemas/PaginatedResponse'
+                      - type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Invite'
         '401':
           $ref: '#/components/responses/unauthorized'
         '403':
@@ -1515,8 +1914,8 @@ paths:
   /vX/access/{resourceType}/{resourceId}/robots:
     get:
       tags: [Robots]
-      operationId: listRobots
-      summary: List robots with access to this resource
+      operationId: getRobots
+      summary: Get robots with access to this resource
       description: |
         Retrieves a list of robots that have access to the specified resource.
 
@@ -1544,14 +1943,18 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Robot'
+                anyOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Robot'
+                  - allOf:
+                      - $ref: '#/components/schemas/PaginatedResponse'
+                      - type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Robot'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
