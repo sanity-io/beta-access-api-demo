@@ -30,7 +30,7 @@ async function createRobot(organizationId: string, robotName: string) {
   }
 
   console.log(`Make sure to save the token to the environment variable ORGANIZATION_ROBOT_TOKEN`);
-  console.log(data);
+  console.log(JSON.stringify(data, null, 2));
 }
 
 createRobot(organizationId, 'organization-robot-manage-users');

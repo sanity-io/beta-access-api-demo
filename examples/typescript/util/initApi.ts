@@ -15,7 +15,7 @@ export function initApi(tokenEnvVar: string = '') {
       request.headers.set('Authorization', `Bearer ${token}`);
     }
 
-    if (process.env.DEBUG) {
+    if (process.env.DEBUG === 'true') {
       console.log(`Options: ${JSON.stringify(options, null, 2)}`);
     }
     return request;

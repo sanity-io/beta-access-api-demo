@@ -1,4 +1,4 @@
-import { Users, User } from '../../../generated/typescript';
+import { Users, User, PaginatedResponse } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
 initApi('PROJECT_ROBOT_TOKEN');
@@ -26,8 +26,13 @@ async function readUsers(projectId: string) {
       return;
     }
 
-    users = users.concat(data?.data || []);
-    nextCursor = data?.nextCursor || undefined;
+    // Temporary fix for the API optionallyreturning a non-paginated response
+    const paginatedData = data as PaginatedResponse & {
+      data?: Array<User>;
+    };
+
+    users = users.concat(paginatedData.data || []);
+    nextCursor = paginatedData.nextCursor || undefined;
 
     if (nextCursor == null) {
       break;

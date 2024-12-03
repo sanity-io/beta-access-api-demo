@@ -15,13 +15,20 @@ async function createRole(projectId: string, roleName: string) {
       appliesToRobots: false,
       permissions: [
         {
-          name: 'sanity.project.members.read',
+          name: 'sanity-project-members',
+          action: 'read',
         },
         {
-          name: 'sanity.project.roles.read',
+          name: 'sanity-project-roles',
+          action: 'read',
         },
         {
-          name: 'my-test-permission.mode',
+          name: 'sanity-project',
+          action: 'read',
+        },
+        {
+          name: 'my-test-permission',
+          action: 'mode',
           params: {
             mode: 'read',
             dataset: 'production',
@@ -63,3 +70,5 @@ if (require.main === module) {
 }
 
 export { createRole };
+
+

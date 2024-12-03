@@ -20,29 +20,37 @@ async function createOrganizationRobotRole(organizationId: string, robotRoleName
       appliesToRobots: true,
       appliesToUsers: false,
       permissions: [
-        /*{ // Project wildcard permissions not supported yet
-          name: 'sanity.project.members.read',
+        {
+          name: 'sanity-project-members',
+          action: 'read',
         },
         {
-          name: 'sanity.project.member.update',
+          name: 'sanity-project-members',
+          action: 'update',
         },
         {
-          name: 'sanity.project.members.delete',
+          name: 'sanity-project-members',
+          action: 'delete',
         },
         {
-          name: 'sanity.project.members.invite',
-        },*/
-        {
-          name: 'sanity.organization.members.read',
+          name: 'sanity-project-members',
+          action: 'invite',
         },
         {
-          name: 'sanity.organization.members.update',
+          name: 'sanity-organization-members',
+          action: 'read',
         },
         {
-          name: 'sanity.organization.members.delete',
+          name: 'sanity-organization-members',
+          action: 'update',
         },
         {
-          name: 'sanity.organization.members.invite',
+          name: 'sanity-organization-members',
+          action: 'delete',
+        },
+        {
+          name: 'sanity-organization-members',
+          action: 'invite',
         },
       ],
     },

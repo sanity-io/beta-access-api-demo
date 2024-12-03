@@ -1,4 +1,4 @@
-import { Permissions, Permission } from '../../../generated/typescript';
+import { Permissions, Permission, PaginatedResponse } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
 initApi('PROJECT_ROBOT_TOKEN');
@@ -6,33 +6,20 @@ initApi('PROJECT_ROBOT_TOKEN');
 const projectId = process.env.PROJECT_ID || '<project-id>';
 
 async function readPermissions(projectId: string) {
-  let permissions: Array<Permission> = [];
-  let nextCursor: string | undefined;
 
-  while (true) {
-    const { data, error } = await Permissions.getPermissions({
-      path: {
-        resourceId: projectId,
-        resourceType: 'project',
-      },
-      query: {
-        limit: 10,
-        nextCursor,
-      },
-    });
+  const { data, error } = await Permissions.getPermissions({
+    path: {
+      resourceId: projectId,
+      resourceType: 'project',
+    },
+  });
 
-    if (error) {
-      console.error(error);
-      break;
-    }
-
-    permissions = permissions.concat(data?.data || []);
-    nextCursor = data?.nextCursor || undefined;
-
-    if (nextCursor == null) {
-      break;
-    }
+  if (error) {
+    console.error(error);
+    return;
   }
+
+  const permissions = data as Array<Permission>;
 
   if (!permissions) {
     console.error('No permissions found');
@@ -42,6 +29,7 @@ async function readPermissions(projectId: string) {
   console.log('Permissions');
   for (const permission of permissions) {
     console.log(`- ${permission.title}`);
+    console.log(`  Type: ${permission.type}`);
     console.log(`  Identifier: ${permission.name}`);
     console.log(`  Description: ${permission.description}`);
     console.log(`  ResourceId: ${permission.resourceId}`);

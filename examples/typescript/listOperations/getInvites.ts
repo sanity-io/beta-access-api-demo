@@ -1,4 +1,4 @@
-import { Invites, Invite } from '../../../generated/typescript';
+import { Invites, Invite, PaginatedResponse } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
 initApi('PROJECT_ROBOT_TOKEN');
@@ -26,8 +26,13 @@ async function readInvites(projectId: string) {
       return;
     }
 
-    invites = invites.concat(data?.data || []);
-    nextCursor = data?.nextCursor || undefined;
+    // Temporary fix for the API optionally returning a non-paginated response
+    const paginatedData = data as PaginatedResponse & {
+      data?: Array<Invite>;
+    };
+
+    invites = invites.concat(paginatedData.data || []);
+    nextCursor = paginatedData.nextCursor || undefined;
 
     if (nextCursor == null) {
       break;

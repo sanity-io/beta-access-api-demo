@@ -1,4 +1,4 @@
-import { Users } from '../../../generated/typescript';
+import { PaginatedResponse, User, Users } from '../../../generated/typescript';
 import { initApi } from '../util/initApi';
 
 initApi('ORGANIZATION_ROBOT_TOKEN');
@@ -9,21 +9,40 @@ const email = process.env.EMAIL_ADDRESS || 'john.doe@example.com';
 const roleName = process.env.ROLE_NAME || 'developer';
 
 async function assignRole(organizationId: string, email: string, roleName: string) {
-  const { data: users, error } = await Users.getUsers({
-    path: {
-      resourceId: organizationId,
-      resourceType: 'organization',
+  let nextCursor: string | undefined;
+  let users: Array<User> = [];
+  while (true) {
+    const { data, error } = await Users.getUsers({
+      path: {
+        resourceId: organizationId,
+        resourceType: 'organization',
     },
-  });
+      query: {
+        nextCursor,
+        limit: 10,
+      },
+    });
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+    if (error) {
+      console.error(error);
+      return;
+    }
 
-  if (!users) {
-    console.error('No users found');
-    return;
+    if (!data) {
+      console.error('No users found');
+      return;
+    }
+
+    const paginatedData = data as PaginatedResponse & {
+      data?: Array<User>;
+    };
+
+    users = users.concat(paginatedData.data || []);
+    nextCursor = paginatedData.nextCursor || undefined;
+
+    if (nextCursor == null) {
+      break;
+    }
   }
 
   const user = users.find(user => user.profile.email === email);
@@ -33,7 +52,7 @@ async function assignRole(organizationId: string, email: string, roleName: strin
     return;
   }
 
-  const { data, error: addError } = await Users.addRoleToUser({
+  const { data: addData, error: addError } = await Users.addRoleToUser({
     path: {
       resourceId: organizationId,
       resourceType: 'organization',
@@ -47,7 +66,7 @@ async function assignRole(organizationId: string, email: string, roleName: strin
     return;
   }
 
-  console.log(data);
+  console.log(addData);
 }
 
 if (require.main === module) {
