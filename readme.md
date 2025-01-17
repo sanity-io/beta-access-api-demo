@@ -1,3 +1,9 @@
+# NOTICE: This BETA repo is now in read-only mode and will not receive updates. 
+
+Get the latest documentation [here](https://www.sanity.io/docs/reference/http/access).
+
+Below is for historical reference...
+
 # Welcome to the Beta Access API
 
 Thank you for trying the new Access API from Sanity.io. The intention of this API is to provide a single simplified interface for managing access to Organizations and Projects.
